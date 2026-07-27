@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
+from django.db.models import Q
 from prediction.models import StrokePrediction, StrokeDataset
 from accounts.models import User
 
@@ -194,6 +195,32 @@ def predict_stroke(request):
         )
         prediction_record.save()
 
+        # Also sync to StrokeDataset
+        try:
+            pid = input_data.get('patient_id') or f"PT{prediction_record.id:04d}"
+            StrokeDataset.objects.update_or_create(
+                patient_id=pid,
+                defaults={
+                    'weakness_half_body': to_bool_int(input_data.get('weakness_half_body', False)),
+                    'speech_difficulty': to_bool_int(input_data.get('speech_difficulty', False)),
+                    'blurred_vision': to_bool_int(input_data.get('blurred_vision', False)),
+                    'sudden_headache': to_bool_int(input_data.get('sudden_headache', False)),
+                    'dizziness_vertigo': to_bool_int(input_data.get('dizziness_vertigo', False)),
+                    'blood_sugar': features_scaled.get('blood_sugar', 0.0),
+                    'cholesterol': features_scaled.get('cholesterol', 0.0),
+                    'ekg_result': to_bool_int(input_data.get('ekg_result', False)),
+                    'systolic_bp': features_scaled.get('systolic_bp', 0.0),
+                    'diastolic_bp': features_scaled.get('diastolic_bp', 0.0),
+                    'bmi': features_scaled.get('bmi', 0.0),
+                    'has_diabetes': to_bool_int(input_data.get('has_diabetes', False)),
+                    'has_hypertension': to_bool_int(input_data.get('has_hypertension', False)),
+                    'has_dyslipidemia': to_bool_int(input_data.get('has_dyslipidemia', False)),
+                    'stroke_type': pred_label
+                }
+            )
+        except Exception:
+            pass
+
         # Generate mock/calculated probabilities for display
         probs_dict = {'No_Stroke': 5, 'Ischemic': 10, 'Hemorrhagic': 5}
         if pred_label == 'Ischemic':
@@ -219,30 +246,51 @@ def predict_stroke(request):
 def dashboard_stats(request):
     try:
         total_predictions = StrokePrediction.objects.count()
-        stroke_cases = StrokePrediction.objects.filter(predicted_stroke_type__in=['Ischemic', 'Hemorrhagic']).count()
+        if total_predictions == 0:
+            total_predictions = StrokeDataset.objects.count()
+            stroke_cases = StrokeDataset.objects.filter(stroke_type__in=['Ischemic', 'Hemorrhagic']).count()
+            no_stroke_cnt = StrokeDataset.objects.filter(stroke_type='No_Stroke').count()
+            ischemic_cnt = StrokeDataset.objects.filter(stroke_type='Ischemic').count()
+            hemorrhagic_cnt = StrokeDataset.objects.filter(stroke_type='Hemorrhagic').count()
+        else:
+            stroke_cases = StrokePrediction.objects.filter(predicted_stroke_type__in=['Ischemic', 'Hemorrhagic']).count()
+            no_stroke_cnt = StrokePrediction.objects.filter(predicted_stroke_type='No_Stroke').count()
+            ischemic_cnt = StrokePrediction.objects.filter(predicted_stroke_type='Ischemic').count()
+            hemorrhagic_cnt = StrokePrediction.objects.filter(predicted_stroke_type='Hemorrhagic').count()
         
-        no_stroke_cnt = StrokePrediction.objects.filter(predicted_stroke_type='No_Stroke').count()
-        ischemic_cnt = StrokePrediction.objects.filter(predicted_stroke_type='Ischemic').count()
-        hemorrhagic_cnt = StrokePrediction.objects.filter(predicted_stroke_type='Hemorrhagic').count()
+        high_risk_pct = round((stroke_cases / total_predictions * 100), 1) if total_predictions > 0 else 0.0
+        no_stroke_pct = round((no_stroke_cnt / total_predictions * 100), 1) if total_predictions > 0 else 0.0
+        ischemic_pct = round((ischemic_cnt / total_predictions * 100), 1) if total_predictions > 0 else 0.0
+        hemorrhagic_pct = round((hemorrhagic_cnt / total_predictions * 100), 1) if total_predictions > 0 else 0.0
         
         donut_data = {
             'no_stroke': no_stroke_cnt,
+            'no_stroke_pct': no_stroke_pct,
             'ischemic': ischemic_cnt,
-            'hemorrhagic': hemorrhagic_cnt
+            'ischemic_pct': ischemic_pct,
+            'hemorrhagic': hemorrhagic_cnt,
+            'hemorrhagic_pct': hemorrhagic_pct
         }
         
         bar_data = [
-            {'name': 'No Stroke', 'count': no_stroke_cnt},
-            {'name': 'Ischemic Stroke', 'count': ischemic_cnt},
-            {'name': 'Hemorrhagic Stroke', 'count': hemorrhagic_cnt}
+            {'name': 'No Stroke', 'count': no_stroke_cnt, 'percentage': no_stroke_pct},
+            {'name': 'Ischemic Stroke', 'count': ischemic_cnt, 'percentage': ischemic_pct},
+            {'name': 'Hemorrhagic Stroke', 'count': hemorrhagic_cnt, 'percentage': hemorrhagic_pct}
         ]
         
         return JsonResponse({
             'success': True,
             'total_predictions': total_predictions,
             'stroke_cases': stroke_cases,
+            'high_risk_count': stroke_cases,
+            'high_risk_pct': high_risk_pct,
             'donut_data': donut_data,
-            'bar_data': bar_data
+            'bar_data': bar_data,
+            'stroke_type_distribution': {
+                'No_Stroke': no_stroke_cnt,
+                'Ischemic': ischemic_cnt,
+                'Hemorrhagic': hemorrhagic_cnt
+            }
         })
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
@@ -336,35 +384,63 @@ def api_dataset(request):
             limit = int(request.GET.get('limit', 10))
             search = request.GET.get('search', '')
             
-            qs = StrokeDataset.objects.all().order_by('-id')
-            if search:
-                qs = qs.filter(patient_id__icontains=search)
-                
-            total = qs.count()
-            start = (page - 1) * limit
-            end = start + limit
-            
-            rows = []
-            for item in qs[start:end]:
-                rows.append({
-                    'id': item.id,
-                    'patient_id': item.patient_id,
-                    'weakness_half_body': item.weakness_half_body,
-                    'speech_difficulty': item.speech_difficulty,
-                    'blurred_vision': item.blurred_vision,
-                    'sudden_headache': item.sudden_headache,
-                    'dizziness_vertigo': item.dizziness_vertigo,
-                    'blood_sugar': unscale_value(item.blood_sugar, 'blood_sugar'),
-                    'cholesterol': unscale_value(item.cholesterol, 'cholesterol'),
-                    'ekg_result': item.ekg_result,
-                    'systolic_bp': unscale_value(item.systolic_bp, 'systolic_bp'),
-                    'diastolic_bp': unscale_value(item.diastolic_bp, 'diastolic_bp'),
-                    'bmi': unscale_value(item.bmi, 'bmi'),
-                    'has_diabetes': item.has_diabetes,
-                    'has_hypertension': item.has_hypertension,
-                    'has_dyslipidemia': item.has_dyslipidemia,
-                    'stroke_type': item.stroke_type
-                })
+            # Prefer StrokePrediction records if available, otherwise StrokeDataset
+            if StrokePrediction.objects.exists():
+                qs = StrokePrediction.objects.all().order_by('-id')
+                if search:
+                    qs = qs.filter(Q(patient_id__icontains=search) | Q(predicted_stroke_type__icontains=search))
+                total = qs.count()
+                start = (page - 1) * limit
+                end = start + limit
+                rows = []
+                for item in qs[start:end]:
+                    rows.append({
+                        'id': item.id,
+                        'patient_id': item.patient_id or f'PT0{item.id}',
+                        'weakness_half_body': item.weakness_half_body,
+                        'speech_difficulty': item.speech_difficulty,
+                        'blurred_vision': item.blurred_vision,
+                        'sudden_headache': item.sudden_headache,
+                        'dizziness_vertigo': item.dizziness_vertigo,
+                        'blood_sugar': unscale_value(item.blood_sugar, 'blood_sugar'),
+                        'cholesterol': unscale_value(item.cholesterol, 'cholesterol'),
+                        'ekg_result': item.ekg_result,
+                        'systolic_bp': unscale_value(item.systolic_bp, 'systolic_bp'),
+                        'diastolic_bp': unscale_value(item.diastolic_bp, 'diastolic_bp'),
+                        'bmi': unscale_value(item.bmi, 'bmi'),
+                        'has_diabetes': item.has_diabetes,
+                        'has_hypertension': item.has_hypertension,
+                        'has_dyslipidemia': item.has_dyslipidemia,
+                        'stroke_type': item.predicted_stroke_type
+                    })
+            else:
+                qs = StrokeDataset.objects.all().order_by('-id')
+                if search:
+                    qs = qs.filter(patient_id__icontains=search)
+                total = qs.count()
+                start = (page - 1) * limit
+                end = start + limit
+                rows = []
+                for item in qs[start:end]:
+                    rows.append({
+                        'id': item.id,
+                        'patient_id': item.patient_id,
+                        'weakness_half_body': item.weakness_half_body,
+                        'speech_difficulty': item.speech_difficulty,
+                        'blurred_vision': item.blurred_vision,
+                        'sudden_headache': item.sudden_headache,
+                        'dizziness_vertigo': item.dizziness_vertigo,
+                        'blood_sugar': unscale_value(item.blood_sugar, 'blood_sugar'),
+                        'cholesterol': unscale_value(item.cholesterol, 'cholesterol'),
+                        'ekg_result': item.ekg_result,
+                        'systolic_bp': unscale_value(item.systolic_bp, 'systolic_bp'),
+                        'diastolic_bp': unscale_value(item.diastolic_bp, 'diastolic_bp'),
+                        'bmi': unscale_value(item.bmi, 'bmi'),
+                        'has_diabetes': item.has_diabetes,
+                        'has_hypertension': item.has_hypertension,
+                        'has_dyslipidemia': item.has_dyslipidemia,
+                        'stroke_type': item.stroke_type
+                    })
                 
             return JsonResponse({
                 'success': True,
@@ -383,10 +459,7 @@ def api_dataset(request):
             if not patient_id:
                 patient_id = 'PT' + str(int(time.time()))
                 
-            if StrokeDataset.objects.filter(patient_id=patient_id).exists():
-                return JsonResponse({'success': False, 'error': 'รหัสผู้ป่วยนี้มีอยู่แล้วในระบบ'}, status=400)
-                
-            item = StrokeDataset(
+            prediction_item = StrokePrediction(
                 patient_id=patient_id,
                 weakness_half_body=to_bool_int(data.get('weakness_half_body', False)),
                 speech_difficulty=to_bool_int(data.get('speech_difficulty', False)),
@@ -402,22 +475,70 @@ def api_dataset(request):
                 has_diabetes=to_bool_int(data.get('has_diabetes', False)),
                 has_hypertension=to_bool_int(data.get('has_hypertension', False)),
                 has_dyslipidemia=to_bool_int(data.get('has_dyslipidemia', False)),
-                stroke_type=data.get('stroke_type', 'No_Stroke')
+                predicted_stroke_type=data.get('stroke_type', 'No_Stroke')
             )
+            prediction_item.save()
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+    elif request.method == 'PUT':
+        try:
+            data = json.loads(request.body)
+            item_id = data.get('id')
+            item = StrokePrediction.objects.filter(id=item_id).first()
+            if not item:
+                item = StrokeDataset.objects.filter(id=item_id).first()
+            if not item:
+                return JsonResponse({'success': False, 'error': 'ไม่พบข้อมูลผู้ป่วย'}, status=404)
+
+            if 'patient_id' in data:
+                item.patient_id = data['patient_id']
+            if 'weakness_half_body' in data:
+                item.weakness_half_body = to_bool_int(data['weakness_half_body'])
+            if 'speech_difficulty' in data:
+                item.speech_difficulty = to_bool_int(data['speech_difficulty'])
+            if 'blurred_vision' in data:
+                item.blurred_vision = to_bool_int(data['blurred_vision'])
+            if 'sudden_headache' in data:
+                item.sudden_headache = to_bool_int(data['sudden_headache'])
+            if 'dizziness_vertigo' in data:
+                item.dizziness_vertigo = to_bool_int(data['dizziness_vertigo'])
+            if 'blood_sugar' in data:
+                item.blood_sugar = scale_value(data['blood_sugar'], 'blood_sugar')
+            if 'cholesterol' in data:
+                item.cholesterol = scale_value(data['cholesterol'], 'cholesterol')
+            if 'ekg_result' in data:
+                item.ekg_result = to_bool_int(data['ekg_result'])
+            if 'systolic_bp' in data:
+                item.systolic_bp = scale_value(data['systolic_bp'], 'systolic_bp')
+            if 'diastolic_bp' in data:
+                item.diastolic_bp = scale_value(data['diastolic_bp'], 'diastolic_bp')
+            if 'bmi' in data:
+                item.bmi = scale_value(data['bmi'], 'bmi')
+            if 'has_diabetes' in data:
+                item.has_diabetes = to_bool_int(data['has_diabetes'])
+            if 'has_hypertension' in data:
+                item.has_hypertension = to_bool_int(data['has_hypertension'])
+            if 'has_dyslipidemia' in data:
+                item.has_dyslipidemia = to_bool_int(data['has_dyslipidemia'])
+            if 'stroke_type' in data:
+                if hasattr(item, 'predicted_stroke_type'):
+                    item.predicted_stroke_type = data['stroke_type']
+                else:
+                    item.stroke_type = data['stroke_type']
             item.save()
             return JsonResponse({'success': True})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
-            
+
     elif request.method == 'DELETE':
         try:
             body_data = json.loads(request.body) if request.body else {}
             row_id = request.GET.get('id') or body_data.get('id')
-            item = StrokeDataset.objects.get(id=row_id)
-            item.delete()
+            StrokePrediction.objects.filter(id=row_id).delete()
+            StrokeDataset.objects.filter(id=row_id).delete()
             return JsonResponse({'success': True})
-        except StrokeDataset.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'ไม่พบข้อมูล'}, status=404)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
