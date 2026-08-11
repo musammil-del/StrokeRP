@@ -11,3 +11,7 @@ class User(AbstractUser):
     ]
 
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="user")
+
+    class Meta:
+        verbose_name = 'ผู้ใช้งาน'
+        verbose_name_plural = 'ข้อมูลผู้ใช้งาน (Users)'

@@ -1,0 +1,4 @@
+﻿Model,Train Accuracy,Test Accuracy,Gap
+Decision Tree,0.9656,0.7520,0.2136
+Random Forest,0.9691,0.8400,0.1291
+XGBoost,0.9639,0.8680,0.0959

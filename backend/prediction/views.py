@@ -118,38 +118,42 @@ def predict_stroke(request):
     try:
         input_data = json.loads(request.body)
         
-        # Load the model
-        model_path = os.path.join(settings.BASE_DIR, "prediction", "ml_models", "random_forest.joblib")
+        # Load the model (Randomforestmodel1.pkl)
+        model_path = os.path.join(settings.BASE_DIR, "prediction", "ml_models", "Randomforestmodel1.pkl")
         if not os.path.exists(model_path):
-            return JsonResponse({'error': 'Random Forest model not found. Please train models first.'}, status=400)
+            return JsonResponse({'error': 'ไม่พบไฟล์โมเดล Randomforestmodel1.pkl'}, status=400)
         
         loaded_data = joblib.load(model_path)
         model = loaded_data["model"]
         label_encoder = loaded_data["label_encoder"]
-        features = loaded_data["features"]
+        features = loaded_data.get("feature_columns") or loaded_data.get("features", [])
         
         # Construct row for model matching features
         row = {}
         features_scaled = {}
         for feature in features:
-            val = input_data.get(feature, 0)
-            if feature in [
+            key_lower = feature.lower()
+            val = input_data.get(feature)
+            if val is None:
+                val = input_data.get(key_lower, 0)
+
+            if key_lower in [
                 'weakness_half_body', 'speech_difficulty', 'blurred_vision', 
                 'sudden_headache', 'dizziness_vertigo', 'ekg_result', 
-                'has_diabetes', 'has_hypertension'
+                'has_diabetes', 'has_hypertension', 'has_dyslipidemia'
             ]:
                 row[feature] = to_bool_int(val)
-                features_scaled[feature] = row[feature]
-            elif feature in MIN_MAX_SCALES:
-                row[feature] = scale_value(val, feature)
-                features_scaled[feature] = row[feature]
+                features_scaled[key_lower] = row[feature]
+            elif key_lower in MIN_MAX_SCALES:
+                row[feature] = scale_value(val, key_lower)
+                features_scaled[key_lower] = row[feature]
             else:
                 try:
                     row[feature] = float(val)
-                    features_scaled[feature] = row[feature]
+                    features_scaled[key_lower] = row[feature]
                 except (ValueError, TypeError):
                     row[feature] = 0.0
-                    features_scaled[feature] = 0.0
+                    features_scaled[key_lower] = 0.0
 
         # Create DataFrame with exact feature order
         df = pd.DataFrame([row], columns=features)

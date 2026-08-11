@@ -30,7 +30,17 @@ import {
   Users,
   Award,
   Target,
-  HeartPulse
+  HeartPulse,
+  Mail,
+  Phone,
+  MapPin,
+  Code2,
+  Cpu,
+  Workflow,
+  GraduationCap,
+  Clock,
+  FileText,
+  Send
 } from 'lucide-react';
 import './styles.css';
 
@@ -104,9 +114,9 @@ function BarChart({ data, height = 180 }) {
   const yTicks = [0, maxVal * 0.2, maxVal * 0.4, maxVal * 0.6, maxVal * 0.8, maxVal];
 
   const paddingLeft = 45;
-  const paddingBottom = 35;
+  const paddingBottom = 55;
   const chartHeight = height;
-  const chartWidth = 480;
+  const chartWidth = 520;
 
   const barWidth = 64;
   const gap = (chartWidth - paddingLeft - (data.length * barWidth)) / (data.length + 1);
@@ -134,11 +144,16 @@ function BarChart({ data, height = 180 }) {
         const bh = (d.value / maxVal) * chartHeight;
         const x = paddingLeft + gap + i * (barWidth + gap);
         const y = chartHeight - bh;
+        const parts = d.label.includes('(') ? d.label.split(' (') : [d.label];
+        const mainText = parts[0];
+        const subText = parts[1] ? `(${parts[1]}` : '';
+
         return (
           <g key={i}>
-            <rect x={x} y={y} width={barWidth} height={bh} fill="#1877f2" rx="4" />
-            <text x={x + barWidth / 2} y={chartHeight + 20} textAnchor="middle" fontSize="12" fontWeight="700" fill="#475569">
-              {d.label}
+            <rect x={x} y={y} width={barWidth} height={bh} fill={d.color || "#1877f2"} rx="4" />
+            <text x={x + barWidth / 2} y={chartHeight + 18} textAnchor="middle" fontSize="11" fontWeight="700" fill="#334155">
+              <tspan x={x + barWidth / 2} dy="0">{mainText}</tspan>
+              {subText && <tspan x={x + barWidth / 2} dy="15" fontSize="10" fontWeight="600" fill="#64748b">{subText}</tspan>}
             </text>
           </g>
         );
@@ -207,16 +222,6 @@ function LoginPage({ onLogin }) {
         </div>
         <h1>STROKE PREDICTION</h1>
         <p>เว็บแอปพลิเคชันสำหรับพยากรณ์ความเสี่ยง<br />โรคหลอดเลือดสมอง ด้วยเทคนิคเหมืองข้อมูล</p>
-        <div style={{ display: 'flex', gap: 20, marginTop: 8 }}>
-          {[{ icon: ShieldCheck, label: 'Decision Tree C4.5' }, { icon: Activity, label: 'Random Forest' }, { icon: BarChart3, label: 'XGBoost' }].map((m, i) => (
-            <div key={i} style={{ textAlign: 'center', color: 'rgba(255,255,255,0.8)' }}>
-              <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 10, padding: '10px 14px', marginBottom: 6 }}>
-                <m.icon size={22} />
-              </div>
-              <div style={{ fontSize: 10, fontWeight: 700 }}>{m.label}</div>
-            </div>
-          ))}
-        </div>
       </div>
 
       <div className="login-panel">
@@ -286,13 +291,13 @@ function Topbar({ session, currentTitle }) {
     <div className="topbar">
       <h2 className="topbar-page-title">{currentTitle || 'Dashboard'}</h2>
       <div className="topbar-right">
-        <button className="notif-btn" title="แจ้งเตือน"><Bell size={18} /></button>
+        {/* <button className="notif-btn" title="แจ้งเตือน"><Bell size={18} /></button> */}
         <div className="profile-chip">
           <div className="profile-avatar">
             <UserRound size={16} />
           </div>
           <span>{session?.role === 'admin' ? 'Admin' : (session?.name || session?.username || 'User')}</span>
-          <ChevronRight size={14} style={{ transform: 'rotate(90deg)', color: '#94a3b8' }} />
+          {/* <ChevronRight size={14} style={{ transform: 'rotate(90deg)', color: '#94a3b8' }} /> */}
         </div>
       </div>
     </div>
@@ -326,14 +331,14 @@ function DashboardView({ onNavigatePredict }) {
   const hemorrhagicPct = total > 0 ? ((hemorrhagic / total) * 100).toFixed(1) : '8.0';
 
   const donutData = [
-    { label: 'No Stroke', value: noStroke, color: '#1877f2', pct: noStrokePct },
-    { label: 'Ischemic Stroke', value: ischemic, color: '#d32f2f', pct: ischemicPct },
-    { label: 'Hemorrhagic Stroke', value: hemorrhagic, color: '#3f51b5', pct: hemorrhagicPct },
+    { label: 'ปกติ (No Stroke)', value: noStroke, color: '#27ae60', pct: noStrokePct },
+    { label: 'หลอดเลือดสมองตีบ (Ischemic Stroke)', value: ischemic, color: '#ff9800', pct: ischemicPct },
+    { label: 'หลอดเลือดสมองแตก (Hemorrhagic Stroke)', value: hemorrhagic, color: '#e74c3c', pct: hemorrhagicPct },
   ];
   const barData = [
-    { label: 'No Stroke', value: noStroke, color: '#1877f2' },
-    { label: 'Ischemic Stroke', value: ischemic, color: '#1877f2' },
-    { label: 'Hemorrhagic Stroke', value: hemorrhagic, color: '#1877f2' },
+    { label: 'ปกติ (No Stroke)', value: noStroke, color: '#27ae60' },
+    { label: 'หลอดเลือดสมองตีบ (Ischemic Stroke)', value: ischemic, color: '#ff9800' },
+    { label: 'หลอดเลือดสมองแตก (Hemorrhagic Stroke)', value: hemorrhagic, color: '#e74c3c' },
   ];
 
   const formatNum = (n) => Number(n).toLocaleString('en-US');
@@ -440,7 +445,7 @@ function DiseaseInfoView() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {[
               { name: 'No Stroke', desc: 'ปกติ ไม่มีภาวะโรคหลอดเลือดสมอง', color: '#27ae60' },
-              { name: 'Ischemic Stroke', desc: 'โรคหลอดเลือดสมองตีบ/อุดตัน (พบบ่อยที่สุด ~85%)', color: '#134e5e' },
+              { name: 'Ischemic Stroke', desc: 'โรคหลอดเลือดสมองตีบ/อุดตัน (พบบ่อยที่สุด ~85%)', color: '#ff9800' },
               { name: 'Hemorrhagic Stroke', desc: 'โรคหลอดเลือดสมองแตก (รุนแรง มีอัตราเสียชีวิตสูง)', color: '#e74c3c' },
             ].map((t, i) => (
               <div key={i} style={{ padding: '10px 14px', borderRadius: 8, background: '#f8fafc', borderLeft: `4px solid ${t.color}` }}>
@@ -455,15 +460,15 @@ function DiseaseInfoView() {
           <h3 style={{ fontSize: 15, color: '#134e5e', fontWeight: 800, marginBottom: 12, paddingBottom: 8, borderBottom: '2px solid #d1e0e8' }}>สัญญาณเตือน F.A.S.T.</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {[
-              { letter: 'F', word: 'Face', desc: 'ใบหน้าเบี้ยว หรือชา' },
-              { letter: 'A', word: 'Arms', desc: 'แขนหรือขาอ่อนแรงข้างเดียว' },
-              { letter: 'S', word: 'Speech', desc: 'พูดไม่ชัด ฟังไม่เข้าใจ' },
-              { letter: 'T', word: 'Time', desc: 'รีบโทร 1669 ทันที!' },
+              { letter: 'F', word: 'Face', desc: 'ใบหน้าเบี้ยว หรือชา', color: '#00a89e', bg: '#e6f7f6' },
+              { letter: 'A', word: 'Arms', desc: 'แขนหรือขาอ่อนแรงข้างเดียว', color: '#0077b6', bg: '#e6f2fa' },
+              { letter: 'S', word: 'Speech', desc: 'พูดไม่ชัด ฟังไม่เข้าใจ', color: '#f7941d', bg: '#fff5e6' },
+              { letter: 'T', word: 'Time', desc: 'รีบโทร 1669 ทันที!', color: '#e52d27', bg: '#fde8e8' },
             ].map((f, i) => (
-              <div key={i} style={{ background: '#f0f6f9', borderRadius: 8, padding: '10px 12px', display: 'flex', gap: 10, alignItems: 'center' }}>
-                <div style={{ width: 36, height: 36, borderRadius: 8, background: '#134e5e', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 900, fontSize: 18, flexShrink: 0 }}>{f.letter}</div>
+              <div key={i} style={{ background: f.bg, borderRadius: 8, padding: '10px 12px', display: 'flex', gap: 10, alignItems: 'center', border: `1px solid ${f.color}33` }}>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: f.color, color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 900, fontSize: 18, flexShrink: 0 }}>{f.letter}</div>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: 13, color: '#134e5e' }}>{f.word}</div>
+                  <div style={{ fontWeight: 800, fontSize: 13, color: f.color }}>{f.word}</div>
                   <div style={{ fontSize: 11, color: '#445a65' }}>{f.desc}</div>
                 </div>
               </div>
@@ -496,92 +501,375 @@ function DiseaseInfoView() {
 }
 
 /* ===================== ABOUT US VIEW (ทีมงานของเรา) ===================== */
+/* ===================== ABOUT US VIEW (เกี่ยวกับเรา) ===================== */
 function AboutUsView() {
+  const [subTab, setSubTab] = useState('all');
+
+  const subNav = [
+    { id: 'all', label: 'รวมเนื้อหาทั้งหมด', icon: FileText },
+    { id: 'mission', label: '1. เกี่ยวกับเรา & พันธกิจ', icon: Target },
+    { id: 'objectives', label: '2. วัตถุประสงค์', icon: CheckCircle2 },
+    { id: 'highlights', label: '3. จุดเด่นของระบบ', icon: Activity },
+    { id: 'tech', label: '4. เทคโนโลยีที่ใช้', icon: Cpu },
+    { id: 'developers', label: '5. ผู้พัฒนาระบบ', icon: GraduationCap },
+    { id: 'contact', label: '6. ติดต่อเรา', icon: Mail },
+  ];
+
   return (
     <div>
-      <div style={{ marginBottom: 20 }}>
-        <h2 style={{ fontSize: 26, fontWeight: 800, color: '#134e5e', marginBottom: 4 }}>เกี่ยวกับเรา</h2>
-        <p style={{ fontSize: 13, color: '#7a9aac' }}>ข้อมูลทีมงาน วัตถุประสงค์ และวิสัยทัศน์ในการพัฒนาระบบ</p>
+      {/* Header Band */}
+      <div className="hero-band" style={{ marginBottom: 20 }}>
+        <div>
+          <span className="eyebrow">ABOUT SYSTEM &amp; TEAM</span>
+          <h2>เกี่ยวกับเรา (About Us)</h2>
+          <p style={{ fontWeight: 700, fontSize: 16, color: '#1877f2', marginBottom: 4 }}>ทำความรู้จัก Stroke Prediction</p>
+          <p style={{ maxWidth: 780, lineHeight: 1.6 }}>
+            เรียนรู้แนวคิด วัตถุประสงค์ จุดเด่น และเทคโนโลยีที่อยู่เบื้องหลังระบบพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง
+          </p>
+        </div>
+        <div className="hero-illustration">
+          <Info size={54} />
+        </div>
       </div>
 
-      {/* Main Team Card matching screenshot design */}
+      {/* Navigation Sub-Tabs */}
       <div style={{
+        display: 'flex',
+        gap: 8,
+        flexWrap: 'wrap',
+        marginBottom: 24,
         background: '#ffffff',
-        borderRadius: 20,
-        padding: '48px 56px',
-        boxShadow: '0 10px 30px rgba(19,78,94,0.08)',
-        border: '1px solid #e1ebf0',
-        width: '100%',
-        marginBottom: 28,
-        position: 'relative',
-        overflow: 'hidden'
+        padding: '10px 14px',
+        borderRadius: 14,
+        boxShadow: '0 4px 14px rgba(0,0,0,0.04)',
+        border: '1px solid #e2e8f0'
       }}>
-        {/* Decorative background shape */}
-        <div style={{
-          position: 'absolute',
-          top: -40,
-          left: -40,
-          width: 180,
-          height: 180,
-          borderRadius: '50%',
-          background: 'rgba(52, 152, 219, 0.06)',
-          zIndex: 0
-        }} />
-        <div style={{
-          position: 'absolute',
-          bottom: -30,
-          right: -30,
-          width: 160,
-          height: 160,
-          borderRadius: '50%',
-          background: 'rgba(241, 196, 15, 0.12)',
-          zIndex: 0
-        }} />
-
-        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
-          <h1 style={{ fontSize: 34, fontWeight: 900, color: '#1a2b35', marginBottom: 12, letterSpacing: -0.5 }}>
-            ทีมงานของเรา
-          </h1>
-          <h3 style={{ fontSize: 18, fontWeight: 700, color: '#134e5e', marginBottom: 24 }}>
-            ผู้เชี่ยวชาญที่ทุ่มเทเพื่อสุขภาพและการป้องกันโรคหลอดเลือดสมอง
-          </h3>
-
-          <div style={{ width: '100%', maxWidth: 900, margin: '0 auto', textAlign: 'center', lineHeight: 1.8, fontSize: 14, color: '#445a65' }}>
-            <p style={{ marginBottom: 18 }}>
-              ทีมงานของเราประกอบไปด้วยบุคลากรทางการแพทย์ ผู้เชี่ยวชาญด้านสุขภาพ นักวิจัยที่มีความเชี่ยวชาญ และผู้เชี่ยวชาญด้านเทคโนโลยีที่ทำงานร่วมกันเพื่อพัฒนาระบบและนวัตกรรมที่ทันสมัยในการดูแลสุขภาพและการพยากรณ์ความเสี่ยงโรคหลอดเลือดสมองให้มีประสิทธิภาพดียิ่งขึ้น
-            </p>
-            <p style={{ marginBottom: 0 }}>
-              ระบบนี้ถูกพัฒนาขึ้นจากความตั้งใจที่จะช่วยยกระดับคุณภาพชีวิตของประชาชนและผู้ป่วย โดยให้สามารถเข้าถึงเครื่องมือที่ช่วยในการตัดสินใจเบื้องต้นเกี่ยวกับอาการและความเสี่ยงของโรคหลอดเลือดสมองได้อย่างรวดเร็ว ถูกต้อง และเชื่อถือได้มากยิ่งขึ้น เพื่อลดอัตราความสูญเสียและความพิการจากการเข้ารับการรักษาที่ไม่ทันท่วงที
-            </p>
-          </div>
-        </div>
+        {subNav.map(t => {
+          const active = subTab === t.id;
+          const Icon = t.icon;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setSubTab(t.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 18px',
+                borderRadius: 10,
+                border: 'none',
+                background: active ? '#1877f2' : 'transparent',
+                color: active ? '#ffffff' : '#475569',
+                fontWeight: active ? 800 : 600,
+                fontSize: 13,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                fontFamily: 'inherit'
+              }}
+            >
+              <Icon size={16} color={active ? '#ffffff' : '#64748b'} />
+              <span>{t.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Team Specialty Cards Grid */}
-      <div className="grid-3">
-        <div className="feature-card" style={{ textAlign: 'center', padding: 24 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: '#e8f4f8', display: 'grid', placeItems: 'center', margin: '0 auto 14px' }}>
-            <HeartPulse size={26} color="#134e5e" />
-          </div>
-          <h4 style={{ fontSize: 15, fontWeight: 800, color: '#134e5e', marginBottom: 8 }}>ผู้เชี่ยวชาญทางการแพทย์</h4>
-          <p style={{ fontSize: 12, color: '#445a65', lineHeight: 1.6 }}>ทีมแพทย์และบุคลากรสาธารณสุขผู้เชี่ยวชาญ ให้คำแนะนำและตรวจสอบความถูกต้องเชิงคลินิกของการประเมินความเสี่ยง</p>
-        </div>
+      {/* CONTENT SECTIONS */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-        <div className="feature-card" style={{ textAlign: 'center', padding: 24 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: '#e8f8f0', display: 'grid', placeItems: 'center', margin: '0 auto 14px' }}>
-            <Brain size={26} color="#27ae60" />
+        {/* SECTION: เกี่ยวกับเรา & พันธกิจ */}
+        {(subTab === 'all' || subTab === 'mission') && (
+          <div className="feature-card" style={{ padding: '32px 36px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#edf5ff', display: 'grid', placeItems: 'center' }}>
+                <Target size={26} color="#1877f2" />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: 0 }}>เกี่ยวกับเรา &amp; พันธกิจของเรา</h3>
+                <div style={{ fontSize: 13, color: '#64748b' }}>ระบบพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง</div>
+              </div>
+            </div>
+            <div style={{ background: '#f8fafc', padding: 20, borderRadius: 12, border: '1px solid #e2e8f0', marginBottom: 16 }}>
+              <h4 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>ระบบพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง</h4>
+              <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.7, margin: 0 }}>
+                ระบบพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง เป็นเว็บแอปพลิเคชันที่พัฒนาขึ้นเพื่อสนับสนุนบุคลากรทางการแพทย์ในการประเมินความเสี่ยงของผู้ป่วย โดยนำข้อมูลทางสุขภาพมาวิเคราะห์ด้วยเทคนิค Machine Learning เพื่อช่วยพยากรณ์ความเสี่ยงและแสดงผลในรูปแบบที่เข้าใจง่าย
+              </p>
+            </div>
+            <div style={{ background: '#f0fdf4', padding: 20, borderRadius: 12, border: '1px solid #bbf7d0' }}>
+              <h4 style={{ fontSize: 16, fontWeight: 800, color: '#166534', marginBottom: 6 }}>พันธกิจของเรา</h4>
+              <p style={{ fontSize: 14, color: '#15803d', lineHeight: 1.7, margin: 0 }}>
+                มุ่งพัฒนาเทคโนโลยีเพื่อสนับสนุนการคัดกรองและประเมินความเสี่ยงโรคหลอดเลือดสมอง โดยนำข้อมูลและเทคนิค Machine Learning มาประยุกต์ใช้ เพื่อให้บุคลากรทางการแพทย์สามารถเข้าถึงข้อมูลและผลการพยากรณ์ได้อย่างสะดวก รวดเร็ว และเป็นระบบ
+              </p>
+            </div>
           </div>
-          <h4 style={{ fontSize: 15, fontWeight: 800, color: '#134e5e', marginBottom: 8 }}>นักวิจัย Data Mining &amp; AI</h4>
-          <p style={{ fontSize: 12, color: '#445a65', lineHeight: 1.6 }}>นักวิเคราะห์ข้อมูลและผู้เชี่ยวชาญด้านปัญญาประดิษฐ์ พัฒนาและเปรียบเทียบโมเดล Decision Tree C4.5, Random Forest และ XGBoost</p>
-        </div>
+        )}
 
-        <div className="feature-card" style={{ textAlign: 'center', padding: 24 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: '#fef5e7', display: 'grid', placeItems: 'center', margin: '0 auto 14px' }}>
-            <Target size={26} color="#f39c12" />
+        {/* SECTION: วัตถุประสงค์ของระบบ */}
+        {(subTab === 'all' || subTab === 'objectives') && (
+          <div className="feature-card" style={{ padding: '32px 36px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#eff6ff', display: 'grid', placeItems: 'center' }}>
+                <CheckCircle2 size={26} color="#2563eb" />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: 0 }}>วัตถุประสงค์ของระบบ</h3>
+                <div style={{ fontSize: 13, color: '#64748b' }}>System Objectives</div>
+              </div>
+            </div>
+            <div className="grid-2" style={{ gap: 14 }}>
+              {[
+                'สนับสนุนการประเมินความเสี่ยงของโรคหลอดเลือดสมอง',
+                'ช่วยลดระยะเวลาในการวิเคราะห์ข้อมูลผู้ป่วย',
+                'นำเทคโนโลยี Machine Learning มาช่วยสนับสนุนการตัดสินใจ',
+                'จัดเก็บและแสดงประวัติผลการพยากรณ์อย่างเป็นระบบ'
+              ].map((text, idx) => (
+                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#ffffff', padding: '16px 20px', borderRadius: 12, border: '1.5px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: '#dbeafe', display: 'grid', placeItems: 'center', color: '#1d4ed8', fontWeight: 900, fontSize: 13, flexShrink: 0 }}>
+                    {idx + 1}
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#1e293b' }}>{text}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <h4 style={{ fontSize: 15, fontWeight: 800, color: '#134e5e', marginBottom: 8 }}>เป้าหมายเพื่อผู้ป่วย</h4>
-          <p style={{ fontSize: 12, color: '#445a65', lineHeight: 1.6 }}>มุ่งหวังยกระดับการคัดกรองความเสี่ยงล่วงหน้า ช่วยให้ประชาชนและผู้ป่วยเข้าถึงการรักษาได้อย่างทันท่วงที</p>
-        </div>
+        )}
+
+        {/* SECTION: จุดเด่นของระบบ */}
+        {(subTab === 'all' || subTab === 'highlights') && (
+          <div className="feature-card" style={{ padding: '32px 36px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#f5f3ff', display: 'grid', placeItems: 'center' }}>
+                <Activity size={26} color="#7c3aed" />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: 0 }}>จุดเด่นของระบบ</h3>
+                <div style={{ fontSize: 13, color: '#64748b' }}>Key Features &amp; Highlights</div>
+              </div>
+            </div>
+            <div className="grid-2" style={{ gap: 16 }}>
+              <div style={{ background: '#ffffff', padding: 20, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <Brain size={22} color="#2563eb" />
+                  <h4 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>พยากรณ์ด้วย Machine Learning</h4>
+                </div>
+                <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                  นำโมเดล Machine Learning มาใช้ในการวิเคราะห์ข้อมูลและพยากรณ์ความเสี่ยง
+                </p>
+              </div>
+
+              <div style={{ background: '#ffffff', padding: 20, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <BarChart3 size={22} color="#16a34a" />
+                  <h4 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>แสดงผลการพยากรณ์</h4>
+                </div>
+                <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                  แสดงผลลัพธ์ในรูปแบบที่เข้าใจง่าย พร้อมเปอร์เซ็นต์ความเสี่ยง
+                </p>
+              </div>
+
+              <div style={{ background: '#ffffff', padding: 20, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <Database size={22} color="#d97706" />
+                  <h4 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>จัดเก็บข้อมูลอย่างเป็นระบบ</h4>
+                </div>
+                <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                  บันทึกข้อมูลและประวัติผลการพยากรณ์เพื่อใช้ในการติดตามและตรวจสอบ
+                </p>
+              </div>
+
+              <div style={{ background: '#ffffff', padding: 20, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <Activity size={22} color="#7c3aed" />
+                  <h4 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>Dashboard</h4>
+                </div>
+                <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                  แสดงข้อมูลสถิติและภาพรวมของการใช้งานระบบในรูปแบบกราฟและข้อมูลสรุป
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SECTION: เทคโนโลยีที่ใช้ */}
+        {(subTab === 'all' || subTab === 'tech') && (
+          <div className="feature-card" style={{ padding: '32px 36px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#f0fdf4', display: 'grid', placeItems: 'center' }}>
+                <Cpu size={26} color="#16a34a" />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: 0 }}>เทคโนโลยีที่ใช้</h3>
+                <div style={{ fontSize: 13, color: '#64748b' }}>Technology Stack</div>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
+              <div style={{ background: '#ffffff', padding: 18, borderRadius: 12, border: '1.5px solid #e2e8f0' }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#0284c7', background: '#e0f2fe', padding: '2px 8px', borderRadius: 4, display: 'inline-block', marginBottom: 6 }}>Frontend</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>React.js</div>
+              </div>
+              <div style={{ background: '#ffffff', padding: 18, borderRadius: 12, border: '1.5px solid #e2e8f0' }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#15803d', background: '#dcfce7', padding: '2px 8px', borderRadius: 4, display: 'inline-block', marginBottom: 6 }}>Backend</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>Django</div>
+              </div>
+              <div style={{ background: '#ffffff', padding: 18, borderRadius: 12, border: '1.5px solid #e2e8f0' }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#0369a1', background: '#e0f2fe', padding: '2px 8px', borderRadius: 4, display: 'inline-block', marginBottom: 6 }}>Database</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>MySQL</div>
+              </div>
+              <div style={{ background: '#ffffff', padding: 18, borderRadius: 12, border: '1.5px solid #e2e8f0' }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#d97706', background: '#fef3c7', padding: '2px 8px', borderRadius: 4, display: 'inline-block', marginBottom: 6 }}>Machine Learning</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#0f172a' }}>Decision Tree, Random Forest และ XGBoost</div>
+              </div>
+              <div style={{ background: '#ffffff', padding: 18, borderRadius: 12, border: '1.5px solid #e2e8f0' }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#7c3aed', background: '#f3e8ff', padding: '2px 8px', borderRadius: 4, display: 'inline-block', marginBottom: 6 }}>Data Processing</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#0f172a' }}>Python, Pandas, NumPy, Scikit-learn</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SECTION: ผู้พัฒนาระบบ */}
+        {(subTab === 'all' || subTab === 'developers') && (
+          <div className="feature-card" style={{ padding: '32px 36px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#fef3c7', display: 'grid', placeItems: 'center' }}>
+                <GraduationCap size={26} color="#d97706" />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: 0 }}>ผู้พัฒนาระบบ</h3>
+                <div style={{ fontSize: 13, color: '#64748b' }}>ทีมพัฒนาเว็บแอปพลิเคชันพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง</div>
+              </div>
+            </div>
+            <div className="grid-3" style={{ gap: 16 }}>
+              <div style={{ background: '#ffffff', borderRadius: 14, padding: 20, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                  <Users size={20} color="#1877f2" />
+                  <h4 style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', margin: 0 }}>ชื่อผู้จัดทำ</h4>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: 8, fontSize: 13, fontWeight: 800, color: '#0f172a', border: '1px solid #e2e8f0' }}>
+                    1. มูซัมมิลล์  อีซอ
+                  </div>
+                  <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: 8, fontSize: 13, fontWeight: 800, color: '#0f172a', border: '1px solid #e2e8f0' }}>
+                    2. ฟารุก  กาแมแล
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ background: '#ffffff', borderRadius: 14, padding: 20, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                  <Award size={20} color="#d97706" />
+                  <h4 style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', margin: 0 }}>อาจารย์ที่ปรึกษา</h4>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ background: '#fffbeb', padding: '8px 12px', borderRadius: 8, fontSize: 12, fontWeight: 800, color: '#0f172a', border: '1px solid #fef08a' }}>
+                    ผศ.ดร.กรสิริณัฐ โรจนวรรณ์ (หลัก)
+                  </div>
+                  <div style={{ background: '#fffbeb', padding: '8px 12px', borderRadius: 8, fontSize: 12, fontWeight: 800, color: '#0f172a', border: '1px solid #fef08a' }}>
+                    ผศ.วิยุดา เพชรจิรโชติกุล (ร่วม)
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ background: '#ffffff', borderRadius: 14, padding: 20, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                  <GraduationCap size={20} color="#16a34a" />
+                  <h4 style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', margin: 0 }}>สถาบันการศึกษา</h4>
+                </div>
+                <div style={{ background: '#f0fdf4', padding: '10px 12px', borderRadius: 8, border: '1px solid #bbf7d0' }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#166534' }}>มหาวิทยาลัยนราธิวาสราชนครินทร์</div>
+                  <div style={{ fontSize: 12, color: '#15803d', marginTop: 2 }}>สาขาวิชาวิศวกรรมคอมพิวเตอร์ คณะวิศวกรรมศาสตร์</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SECTION: ติดต่อเรา */}
+        {(subTab === 'all' || subTab === 'contact') && (
+          <div className="feature-card" style={{ padding: '32px 36px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#ecfdf5', display: 'grid', placeItems: 'center' }}>
+                <Mail size={26} color="#059669" />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: 0 }}>ติดต่อเรา</h3>
+                <div style={{ fontSize: 13, color: '#64748b' }}>Contact Information</div>
+              </div>
+            </div>
+
+            <p style={{ fontSize: 14, color: '#475569', marginBottom: 20, lineHeight: 1.6 }}>
+              หากมีข้อสงสัย ข้อเสนอแนะ หรือพบปัญหาในการใช้งานระบบ สามารถติดต่อทีมพัฒนาได้ผ่านช่องทางต่อไปนี้
+            </p>
+
+            <div className="grid-2" style={{ gap: 16, maxWidth: 900 }}>
+              {/* Card 1: ทีมพัฒนา */}
+              <div style={{ background: '#ffffff', padding: 22, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: '#edf5ff', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <Users size={22} color="#1877f2" />
+                </div>
+                <div style={{ flexGrow: 1 }}>
+                  <div style={{ fontSize: 15, fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>ทีมพัฒนา (Developers)</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#1e293b', background: '#f8fafc', padding: '6px 12px', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                      1. มูซัมมิลล์  อีซอ
+                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#1e293b', background: '#f8fafc', padding: '6px 12px', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                      2. ฟารุก  กาแมแล
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: อีเมล */}
+              <div style={{ background: '#ffffff', padding: 22, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: '#eff6ff', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <Mail size={22} color="#2563eb" />
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: '#64748b', fontWeight: 700, marginBottom: 4 }}>อีเมล (Email)</div>
+                  <div style={{ fontSize: 16, fontWeight: 900, color: '#2563eb', marginBottom: 2 }}>
+                    6660506007@pnu.ac.th
+                  </div>
+                  <div style={{ fontSize: 12, color: '#64748b' }}>ช่องทางติดต่อและประสานงานสอบถามข้อมูล</div>
+                </div>
+              </div>
+
+              {/* Card 3: โทรศัพท์ */}
+              <div style={{ background: '#ffffff', padding: 22, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: '#f0fdf4', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <Phone size={22} color="#16a34a" />
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: '#64748b', fontWeight: 700, marginBottom: 4 }}>โทรศัพท์ (Phone)</div>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: '#166534', marginBottom: 2 }}>
+                    061-137-7646
+                  </div>
+                  <div style={{ fontSize: 12, color: '#64748b' }}>เบอร์โทรศัพท์ติดต่อทีมพัฒนาโครงงาน</div>
+                </div>
+              </div>
+
+              {/* Card 4: ที่อยู่ — มหาวิทยาลัย */}
+              <div style={{ background: '#ffffff', padding: 22, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: '#fef3c7', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <MapPin size={22} color="#d97706" />
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: '#64748b', fontWeight: 700, marginBottom: 4 }}>ที่อยู่ — มหาวิทยาลัย (Address)</div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', marginBottom: 2 }}>
+                    มหาวิทยาลัยนราธิวาสราชนครินทร์
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#d97706', marginBottom: 4 }}>
+                    สาขาวิชาวิศวกรรมคอมพิวเตอร์ คณะวิศวกรรมศาสตร์
+                  </div>
+                  <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.5 }}>
+                    99 หมู่ 8 ตำบลโคกเคียน อำเภอเมืองนราธิวาส จังหวัดนราธิวาส 96000
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
@@ -650,7 +938,7 @@ function PredictView() {
         <div>
           <span className="eyebrow">PREDICTION WIZARD</span>
           <h2>พยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง</h2>
-          <p>กรอกข้อมูลผู้ป่วย 3 ขั้นตอนเพื่อรับผลการประเมินจาก AI</p>
+          <p>กรอกข้อมูลผู้ป่วย 3 ขั้นตอนเพื่อรับผลการประเมินความเสี่ยง</p>
         </div>
         <div className="hero-illustration"><Brain size={60} /></div>
       </div>
@@ -821,9 +1109,13 @@ function ResultView({ result, form, onReset }) {
   const probs = result.probabilities || {};
   const isHigh = pred !== 'No_Stroke';
 
-  const labelMap = { 'No_Stroke': 'No Stroke', 'Ischemic': 'Ischemic Stroke', 'Hemorrhagic': 'Hemorrhagic Stroke' };
-  const colorMap = { 'No_Stroke': '#27ae60', 'Ischemic': '#134e5e', 'Hemorrhagic': '#e74c3c' };
-  const barColors = { 'No_Stroke': '#27ae60', 'Ischemic': '#134e5e', 'Hemorrhagic': '#e74c3c' };
+  const labelMap = { 
+    'No_Stroke': 'ปกติ (No Stroke)', 
+    'Ischemic': 'โรคหลอดเลือดสมองตีบ (Ischemic Stroke)', 
+    'Hemorrhagic': 'โรคหลอดเลือดสมองแตก (Hemorrhagic Stroke)' 
+  };
+  const colorMap = { 'No_Stroke': '#27ae60', 'Ischemic': '#ff9800', 'Hemorrhagic': '#e74c3c' };
+  const barColors = { 'No_Stroke': '#27ae60', 'Ischemic': '#ff9800', 'Hemorrhagic': '#e74c3c' };
 
   const recommendations = {
     'Ischemic': ['รีบพาผู้ป่วยพบแพทย์ทันที', 'ควบคุมความดันโลหิตให้ต่ำกว่า 130/80 mmHg', 'งดสูบบุหรี่และแอลกอฮอล์', 'ออกกำลังกายเบาๆ 30 นาที/วัน', 'รับประทานยาต้านเกล็ดเลือดตามแพทย์สั่ง', 'ลดอาหารไขมันและเค็ม'],
@@ -841,75 +1133,81 @@ function ResultView({ result, form, onReset }) {
         </div>
       </div>
 
-      <div className="grid-2" style={{ marginBottom: 20 }}>
-        <div className="feature-card">
-          <div style={{ textAlign: 'center', padding: '10px 0 20px' }}>
-            <div style={{ display: 'inline-block', padding: '8px 18px', borderRadius: 8, background: isHigh ? '#fde8e8' : '#e8f5e9', marginBottom: 14 }}>
-              <AlertTriangle size={18} color={isHigh ? '#e74c3c' : '#27ae60'} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-              <span style={{ fontWeight: 700, color: isHigh ? '#e74c3c' : '#27ae60', fontSize: 13 }}>
-                {isHigh ? 'ความเสี่ยงสูง (High Risk)' : 'ความเสี่ยงต่ำ (Low Risk)'}
-              </span>
-            </div>
-            <div style={{ fontSize: 26, fontWeight: 900, color: colorMap[pred] || '#134e5e', marginBottom: 6 }}>
-              {labelMap[pred] || pred}
-            </div>
-            <div style={{ fontSize: 13, color: '#7a9aac' }}>ผลการพยากรณ์จาก Random Forest Model</div>
+      {/* 1. Main Prediction Result Card (Full Width & Prominent Display) */}
+      <div className="feature-card" style={{ marginBottom: 20, padding: '28px 36px' }}>
+        <div style={{ textAlign: 'center', padding: '10px 0 24px', borderBottom: '1px solid #eef3f6', marginBottom: 20 }}>
+          <div style={{ display: 'inline-block', padding: '10px 24px', borderRadius: 8, background: isHigh ? '#fde8e8' : '#e8f5e9', marginBottom: 16 }}>
+            <AlertTriangle size={20} color={isHigh ? '#e74c3c' : '#27ae60'} style={{ marginRight: 8, verticalAlign: 'middle' }} />
+            <span style={{ fontWeight: 800, color: isHigh ? '#e74c3c' : '#27ae60', fontSize: 15 }}>
+              {isHigh ? 'ความเสี่ยงสูง (High Risk)' : 'ความเสี่ยงต่ำ (Low Risk)'}
+            </span>
           </div>
-          <div>
-            <p style={{ fontSize: 12, fontWeight: 800, color: '#134e5e', marginBottom: 10 }}>ความน่าจะเป็นแยกตามประเภท:</p>
-            {Object.entries(probs).map(([k, v]) => (
-              <div key={k} className="prob-bar-wrap">
-                <div className="prob-bar-label">
-                  <span>{labelMap[k] || k}</span>
-                  <span style={{ color: barColors[k] }}>{v}%</span>
-                </div>
-                <div className="prob-bar-bg">
-                  <div className="prob-bar-fill" style={{ width: `${v}%`, background: barColors[k] }} />
-                </div>
-              </div>
-            ))}
+          <div style={{ fontSize: 36, fontWeight: 900, color: colorMap[pred] || '#134e5e', marginBottom: 8, letterSpacing: '-0.5px' }}>
+            {labelMap[pred] || pred}
           </div>
+          <div style={{ fontSize: 14, color: '#7a9aac', fontWeight: 600 }}>ผลการพยากรณ์จาก Random Forest Model</div>
         </div>
 
-        <div className="feature-card">
-          <h3 style={{ fontSize: 14, fontWeight: 800, color: '#134e5e', marginBottom: 14 }}>AI อธิบายผล</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
-            {[
-              ['ความดันโลหิต', `${form.systolic_bp}/${form.diastolic_bp} mmHg`],
-              ['น้ำตาลในเลือด', `${form.blood_sugar} mg/dL`],
-              ['ไขมัน Cholesterol', `${form.cholesterol} mg/dL`],
-              ['EKG', form.ekg_result ? 'ผิดปกติ' : 'ปกติ'],
-              ['เบาหวาน', form.has_diabetes ? 'ใช่' : 'ไม่มี'],
-              ['ความดัน (ประวัติ)', form.has_hypertension ? 'ใช่' : 'ไม่มี'],
-              ['Dyslipidemia', form.has_dyslipidemia ? 'ใช่' : 'ไม่มี'],
-              ['BMI', form.bmi],
-            ].map(([k, v]) => (
-              <div key={k} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, padding: '4px 0', borderBottom: '1px solid #eef3f6' }}>
-                <span style={{ color: '#7a9aac', fontWeight: 600 }}>{k}</span>
-                <span style={{ fontWeight: 800, color: '#134e5e' }}>{v}</span>
+        <div>
+          <p style={{ fontSize: 15, fontWeight: 800, color: '#134e5e', marginBottom: 14 }}>ความน่าจะเป็นแยกตามประเภท:</p>
+          {Object.entries(probs).map(([k, v]) => (
+            <div key={k} className="prob-bar-wrap">
+              <div className="prob-bar-label">
+                <span style={{ fontSize: 15, fontWeight: 700 }}>{labelMap[k] || k}</span>
+                <span style={{ color: barColors[k], fontSize: 15, fontWeight: 800 }}>{v}%</span>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="feature-card" style={{ marginBottom: 20 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 800, color: '#134e5e', marginBottom: 14 }}>คำแนะนำ</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 8 }}>
-          {(recommendations[pred] || []).map((r, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '8px 12px', background: '#f8fafc', borderRadius: 6 }}>
-              <CheckCircle2 size={14} color="#27ae60" style={{ marginTop: 2, flexShrink: 0 }} />
-              <span style={{ fontSize: 13, color: '#445a65', lineHeight: 1.5 }}>{r}</span>
+              <div className="prob-bar-bg">
+                <div className="prob-bar-fill" style={{ width: `${v}%`, background: barColors[k] }} />
+              </div>
             </div>
           ))}
         </div>
-        <p style={{ marginTop: 14, fontSize: 11, color: '#7a9aac', fontStyle: 'italic' }}>
+      </div>
+
+      {/* 2. AI Explanation Card (Moved Directly Below Result Card) */}
+      <div className="feature-card" style={{ marginBottom: 20, padding: '24px 32px' }}>
+        <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
+          อธิบายผล
+        </h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
+          {[
+            ['ความดันโลหิต', `${form.systolic_bp}/${form.diastolic_bp} mmHg`],
+            ['น้ำตาลในเลือด', `${form.blood_sugar} mg/dL`],
+            ['ไขมัน Cholesterol', `${form.cholesterol} mg/dL`],
+            ['EKG', form.ekg_result ? 'ผิดปกติ' : 'ปกติ'],
+            ['เบาหวาน', form.has_diabetes ? 'ใช่' : 'ไม่มี'],
+            ['ความดัน (ประวัติ)', form.has_hypertension ? 'ใช่' : 'ไม่มี'],
+            ['Dyslipidemia', form.has_dyslipidemia ? 'ใช่' : 'ไม่มี'],
+            ['BMI', form.bmi],
+          ].map(([k, v]) => (
+            <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 14, padding: '10px 14px', background: '#f8fafc', borderRadius: 8, border: '1px solid #eef3f6' }}>
+              <span style={{ color: '#7a9aac', fontWeight: 600 }}>{k}</span>
+              <span style={{ fontWeight: 800, color: '#134e5e' }}>{v}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 3. Recommendation Card */}
+      <div className="feature-card" style={{ marginBottom: 24, padding: '24px 32px' }}>
+        <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
+          คำแนะนำ
+        </h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 10 }}>
+          {(recommendations[pred] || []).map((r, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', background: '#f8fafc', borderRadius: 8, border: '1px solid #eef3f6' }}>
+              <CheckCircle2 size={16} color="#27ae60" style={{ marginTop: 2, flexShrink: 0 }} />
+              <span style={{ fontSize: 14, color: '#445a65', lineHeight: 1.5, fontWeight: 500 }}>{r}</span>
+            </div>
+          ))}
+        </div>
+        <p style={{ marginTop: 16, fontSize: 12, color: '#7a9aac', fontStyle: 'italic' }}>
           หมายเหตุ: ผลลัพธ์นี้เป็นเพียงการประเมินเบื้องต้น ไม่ใช่การวินิจฉัยทางการแพทย์ กรุณาปรึกษาแพทย์ผู้เชี่ยวชาญ
         </p>
       </div>
 
       <div style={{ textAlign: 'center' }}>
-        <button className="primary-button" style={{ width: 'auto', padding: '12px 32px' }} onClick={onReset}>
+        <button className="primary-button" style={{ width: 'auto', padding: '12px 36px', fontSize: 15 }} onClick={onReset}>
           พยากรณ์ผู้ป่วยรายใหม่
         </button>
       </div>
@@ -1180,7 +1478,11 @@ function DatasetView() {
   const setF = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
   const strokeTypeBadge = (s) => {
-    const map = { 'No_Stroke': { type: 'no-stroke', label: 'No Stroke' }, 'Ischemic': { type: 'ischemic', label: 'Ischemic' }, 'Hemorrhagic': { type: 'hemorrhagic', label: 'Hemorrhagic' } };
+    const map = { 
+      'No_Stroke': { type: 'no-stroke', label: 'ปกติ (No Stroke)' }, 
+      'Ischemic': { type: 'ischemic', label: 'หลอดเลือดสมองตีบ (Ischemic Stroke)' }, 
+      'Hemorrhagic': { type: 'hemorrhagic', label: 'หลอดเลือดสมองแตก (Hemorrhagic Stroke)' } 
+    };
     const m = map[s] || { type: 'no-stroke', label: s };
     return <Badge type={m.type} label={m.label} />;
   };

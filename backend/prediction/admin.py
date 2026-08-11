@@ -1,5 +1,12 @@
 from django.contrib import admin
+from django.contrib.auth.models import Group
+from django.contrib.auth.apps import AuthConfig
 from .models import StrokeDataset, StrokePrediction
+
+# Translate Auth app & Group
+AuthConfig.verbose_name = 'การยืนยันตัวตนและกำหนดสิทธิ์ (Authentication)'
+Group._meta.verbose_name = 'กลุ่มสิทธิ์การใช้งาน'
+Group._meta.verbose_name_plural = 'กลุ่มสิทธิ์การใช้งาน (Groups)'
 
 @admin.register(StrokePrediction)
 class StrokePredictionAdmin(admin.ModelAdmin):
