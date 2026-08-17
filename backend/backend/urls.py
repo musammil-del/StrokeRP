@@ -31,6 +31,6 @@ urlpatterns = [
 ]
 
 # Customize Django Admin site headers
-admin.site.site_header = "การจัดการ Stroke Prediction"
+admin.site.site_header = "การจัดการ StrokeRP"
 admin.site.site_title = "ระบบพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง"
 admin.site.index_title = "ระบบจัดการข้อมูลผู้ใช้งานและการพยากรณ์โรคหลอดเลือดสมอง"

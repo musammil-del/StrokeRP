@@ -13,6 +13,8 @@ import {
   UsersRound,
   Loader2,
   Plus,
+  Lock,
+  User,
   Trash2,
   Edit2,
   ChevronLeft,
@@ -215,69 +217,183 @@ function LoginPage({ onLogin }) {
   }
 
   return (
-    <div className="login-page" style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-      <div className="login-visual">
-        <div className="pulse-ring">
-          <Brain size={52} color="#fff" />
+    <div className="login-page" style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      background: 'linear-gradient(150deg, #071838 0%, #0c2b5e 50%, #1877f2 100%)', 
+      padding: '20px' 
+    }}>
+      <div style={{ 
+        background: '#ffffff', 
+        borderRadius: '24px', 
+        boxShadow: '0 15px 35px rgba(0, 0, 0, 0.15)', 
+        padding: '40px 32px', 
+        maxWidth: '420px', 
+        width: '100%', 
+        display: 'flex', 
+        flexDirection: 'column' 
+      }}>
+        {/* Header Avatar and Titles */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 20, textAlign: 'center' }}>
+          <div style={{ 
+            width: 84, 
+            height: 84, 
+            borderRadius: '50%', 
+            background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', 
+            border: '1.5px solid #bfdbfe',
+            boxShadow: '0 6px 16px rgba(24, 119, 242, 0.1)',
+            display: 'grid', 
+            placeItems: 'center', 
+            marginBottom: 14 
+          }}>
+            <Brain size={44} color="#1877f2" />
+          </div>
+
+          <h1 style={{ fontSize: 26, fontWeight: 900, color: '#1877f2', margin: 0, letterSpacing: '0.5px' }}>
+            StrokeRP
+          </h1>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginTop: 2, letterSpacing: '0.2px' }}>
+            Stroke Risk Prediction Using Data Mining
+          </div>
+
+          <div style={{ width: '100%', height: 1, background: '#f1f5f9', margin: '18px 0 14px' }} />
+
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', margin: 0 }}>
+            {mode === 'login' ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก'}
+          </h2>
         </div>
-        <h1>STROKE PREDICTION</h1>
-        <p>เว็บแอปพลิเคชันสำหรับพยากรณ์ความเสี่ยง<br />โรคหลอดเลือดสมอง ด้วยเทคนิคเหมืองข้อมูล</p>
-      </div>
 
-      <div className="login-panel">
-        <div className="panel-heading">
-          <span>Stroke Prediction</span>
-          <h2>{mode === 'login' ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก'}</h2>
-        </div>
+        {error && <div className="error-box" style={{ marginBottom: 16 }}>{error}</div>}
+        {success && <div className="success-box" style={{ marginBottom: 16 }}>{success}</div>}
 
-        {error && <div className="error-box">{error}</div>}
-        {success && <div className="success-box">{success}</div>}
-
-        <form onSubmit={mode === 'login' ? handleLogin : handleRegister}>
+        <form onSubmit={mode === 'login' ? handleLogin : handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {mode === 'register' && (
-            <div className="field">
-              <span>ชื่อ-นามสกุล</span>
-              <input placeholder="กรอกชื่อ-นามสกุล" value={form.name} onChange={e => set('name', e.target.value)} required />
+            <div className="field" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>ชื่อ-นามสกุล</span>
+              <input 
+                placeholder="กรอกชื่อ-นามสกุล" 
+                value={form.name} 
+                onChange={e => set('name', e.target.value)} 
+                required 
+                style={{ 
+                  width: '100%', 
+                  padding: '10px 14px', 
+                  borderRadius: 8, 
+                  border: '1px solid #d0e1fd', 
+                  outline: 'none', 
+                  fontSize: 14, 
+                  background: '#eff6ff',
+                  color: '#0f172a'
+                }}
+              />
             </div>
           )}
-          <div className="field">
-            <span>ชื่อผู้ใช้ (Username)</span>
-            <input placeholder="กรอกชื่อผู้ใช้" value={form.username} onChange={e => set('username', e.target.value)} required autoComplete="username" />
+
+          <div className="field" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>ชื่อผู้ใช้ (Username)</span>
+            <input 
+              placeholder="musammil" 
+              value={form.username} 
+              onChange={e => set('username', e.target.value)} 
+              required 
+              autoComplete="username" 
+              style={{ 
+                width: '100%', 
+                padding: '10px 14px', 
+                borderRadius: 8, 
+                border: '1px solid #d0e1fd', 
+                outline: 'none', 
+                fontSize: 14, 
+                background: '#eff6ff',
+                color: '#0f172a'
+              }}
+            />
           </div>
-          <div className="field">
-            <span>รหัสผ่าน (Password)</span>
+
+          <div className="field" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>รหัสผ่าน (Password)</span>
             <div style={{ position: 'relative' }}>
-              <input
+              <input 
                 type={showPwd ? 'text' : 'password'}
-                placeholder="กรอกรหัสผ่าน"
-                value={form.password}
-                onChange={e => set('password', e.target.value)}
-                required
-                autoComplete="current-password"
-                style={{ width: '100%', paddingRight: 40 }}
+                placeholder="••••••" 
+                value={form.password} 
+                onChange={e => set('password', e.target.value)} 
+                required 
+                autoComplete="current-password" 
+                style={{ 
+                  width: '100%', 
+                  padding: '10px 40px 10px 14px', 
+                  borderRadius: 8, 
+                  border: '1px solid #d0e1fd', 
+                  outline: 'none', 
+                  fontSize: 14, 
+                  background: '#eff6ff',
+                  color: '#0f172a'
+                }}
               />
               <button type="button" onClick={() => setShowPwd(!showPwd)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#7a9aac' }}>
                 {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
+
           {mode === 'register' && (
-            <div className="field">
-              <span>ยืนยันรหัสผ่าน (Confirm Password)</span>
-              <input type="password" placeholder="กรอกรหัสผ่านอีกครั้ง" value={form.confirmPassword} onChange={e => set('confirmPassword', e.target.value)} required />
+            <div className="field" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>ยืนยันรหัสผ่าน (Confirm Password)</span>
+              <input 
+                type="password"
+                placeholder="กรอกรหัสผ่านอีกครั้ง" 
+                value={form.confirmPassword} 
+                onChange={e => set('confirmPassword', e.target.value)} 
+                required 
+                style={{ 
+                  width: '100%', 
+                  padding: '10px 14px', 
+                  borderRadius: 8, 
+                  border: '1px solid #d0e1fd', 
+                  outline: 'none', 
+                  fontSize: 14, 
+                  background: '#eff6ff',
+                  color: '#0f172a'
+                }}
+              />
             </div>
           )}
-          <button type="submit" className="primary-button" disabled={loading}>
-            {loading ? <Loader2 size={16} className="animate-spin" style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} /> : null}
+
+          <button 
+            type="submit" 
+            className="primary-button" 
+            disabled={loading}
+            style={{ 
+              width: '100%', 
+              padding: '12px', 
+              background: '#1877f2', 
+              color: '#fff', 
+              border: 'none', 
+              borderRadius: 8, 
+              fontSize: 15, 
+              fontWeight: 800, 
+              cursor: 'pointer', 
+              marginTop: 10,
+              transition: 'background 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 10px rgba(24, 119, 242, 0.25)'
+            }}
+          >
+            {loading && <Loader2 size={16} className="animate-spin" style={{ marginRight: 8 }} />}
             {mode === 'login' ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก'}
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: '#7a9aac' }}>
+        <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: '#64748b', fontWeight: 500 }}>
           {mode === 'login' ? (
-            <>ยังไม่มีบัญชี? <span className="text-link" onClick={() => { setMode('register'); setError(''); setSuccess(''); }}>สมัครสมาชิก</span></>
+            <>ยังไม่มีบัญชี? <span className="text-link" style={{ color: '#1877f2', fontWeight: 700, cursor: 'pointer' }} onClick={() => { setMode('register'); setError(''); setSuccess(''); }}>สมัครสมาชิก</span></>
           ) : (
-            <>มีบัญชีแล้ว? <span className="text-link" onClick={() => { setMode('login'); setError(''); setSuccess(''); }}>เข้าสู่ระบบ</span></>
+            <>มีบัญชีแล้ว? <span className="text-link" style={{ color: '#1877f2', fontWeight: 700, cursor: 'pointer' }} onClick={() => { setMode('login'); setError(''); setSuccess(''); }}>เข้าสู่ระบบ</span></>
           )}
         </p>
       </div>
@@ -348,7 +464,7 @@ function DashboardView({ onNavigatePredict }) {
       {/* Hero Action Banner */}
       <div className="hero-band" style={{ marginBottom: 24 }}>
         <div>
-          <span className="eyebrow">STROKE PREDICTION SYSTEM</span>
+          <span className="eyebrow">StrokeRP SYSTEM</span>
           <h2>แผงควบคุมและสถิติภาพรวม (Dashboard)</h2>
           <p>ระบบวิเคราะห์ข้อมูลพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง</p>
           <div style={{ marginTop: 14 }}>
@@ -507,7 +623,7 @@ function AboutUsView() {
 
   const subNav = [
     { id: 'all', label: 'รวมเนื้อหาทั้งหมด', icon: FileText },
-    { id: 'mission', label: '1. เกี่ยวกับเรา & พันธกิจ', icon: Target },
+    { id: 'about', label: '1. เกี่ยวกับเรา', icon: Info },
     { id: 'objectives', label: '2. วัตถุประสงค์', icon: CheckCircle2 },
     { id: 'highlights', label: '3. จุดเด่นของระบบ', icon: Activity },
     { id: 'tech', label: '4. เทคโนโลยีที่ใช้', icon: Cpu },
@@ -522,7 +638,7 @@ function AboutUsView() {
         <div>
           <span className="eyebrow">ABOUT SYSTEM &amp; TEAM</span>
           <h2>เกี่ยวกับเรา (About Us)</h2>
-          <p style={{ fontWeight: 700, fontSize: 16, color: '#1877f2', marginBottom: 4 }}>ทำความรู้จัก Stroke Prediction</p>
+          <p style={{ fontWeight: 700, fontSize: 16, color: '#1877f2', marginBottom: 4 }}>ทำความรู้จัก StrokeRP</p>
           <p style={{ maxWidth: 780, lineHeight: 1.6 }}>
             เรียนรู้แนวคิด วัตถุประสงค์ จุดเด่น และเทคโนโลยีที่อยู่เบื้องหลังระบบพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง
           </p>
@@ -577,29 +693,43 @@ function AboutUsView() {
       {/* CONTENT SECTIONS */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-        {/* SECTION: เกี่ยวกับเรา & พันธกิจ */}
-        {(subTab === 'all' || subTab === 'mission') && (
+        {/* SECTION: เกี่ยวกับเรา */}
+        {(subTab === 'all' || subTab === 'about') && (
           <div className="feature-card" style={{ padding: '32px 36px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
               <div style={{ width: 48, height: 48, borderRadius: 14, background: '#edf5ff', display: 'grid', placeItems: 'center' }}>
-                <Target size={26} color="#1877f2" />
+                <Info size={26} color="#1877f2" />
               </div>
               <div>
-                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: 0 }}>เกี่ยวกับเรา &amp; พันธกิจของเรา</h3>
-                <div style={{ fontSize: 13, color: '#64748b' }}>ระบบพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง</div>
+                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: 0 }}>เกี่ยวกับเรา (About Us)</h3>
+                <div style={{ fontSize: 13, color: '#64748b' }}>เว็บแอปพลิเคชันพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง (StrokeRP)</div>
               </div>
             </div>
-            <div style={{ background: '#f8fafc', padding: 20, borderRadius: 12, border: '1px solid #e2e8f0', marginBottom: 16 }}>
-              <h4 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>ระบบพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง</h4>
-              <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.7, margin: 0 }}>
-                ระบบพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง เป็นเว็บแอปพลิเคชันที่พัฒนาขึ้นเพื่อสนับสนุนบุคลากรทางการแพทย์ในการประเมินความเสี่ยงของผู้ป่วย โดยนำข้อมูลทางสุขภาพมาวิเคราะห์ด้วยเทคนิค Machine Learning เพื่อช่วยพยากรณ์ความเสี่ยงและแสดงผลในรูปแบบที่เข้าใจง่าย
-              </p>
-            </div>
-            <div style={{ background: '#f0fdf4', padding: 20, borderRadius: 12, border: '1px solid #bbf7d0' }}>
-              <h4 style={{ fontSize: 16, fontWeight: 800, color: '#166534', marginBottom: 6 }}>พันธกิจของเรา</h4>
-              <p style={{ fontSize: 14, color: '#15803d', lineHeight: 1.7, margin: 0 }}>
-                มุ่งพัฒนาเทคโนโลยีเพื่อสนับสนุนการคัดกรองและประเมินความเสี่ยงโรคหลอดเลือดสมอง โดยนำข้อมูลและเทคนิค Machine Learning มาประยุกต์ใช้ เพื่อให้บุคลากรทางการแพทย์สามารถเข้าถึงข้อมูลและผลการพยากรณ์ได้อย่างสะดวก รวดเร็ว และเป็นระบบ
-              </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ background: '#f8fafc', padding: 18, borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.8, margin: 0 }}>
+                  ทีมงานของเราประกอบด้วยผู้พัฒนาที่มีความสนใจด้านเทคโนโลยีและการประยุกต์ใช้ปัญญาประดิษฐ์ในการดูแลสุขภาพ โดยมุ่งมั่นพัฒนาระบบที่สามารถนำเทคโนโลยีมาช่วยสนับสนุนการทำงานของบุคลากรทางการแพทย์ และเพิ่มความสะดวกในการประเมินข้อมูลของผู้ป่วย
+                </p>
+              </div>
+
+              <div style={{ background: '#f8fafc', padding: 18, borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.8, margin: 0 }}>
+                  เว็บแอปพลิเคชันพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง พัฒนาขึ้นเพื่อสนับสนุนบุคลากรทางการแพทย์ในการประเมินความเสี่ยงของผู้ป่วย โดยนำข้อมูลทางสุขภาพมาวิเคราะห์ด้วยเทคนิค Machine Learning เพื่อช่วยพยากรณ์ความเสี่ยงและแสดงผลในรูปแบบที่เข้าใจง่าย ช่วยให้ผู้ใช้งานสามารถเห็นข้อมูลและผลการพยากรณ์ได้อย่างชัดเจน
+                </p>
+              </div>
+
+              <div style={{ background: '#f8fafc', padding: 18, borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.8, margin: 0 }}>
+                  เว็บแอปพลิเคชันพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง ได้รับการออกแบบให้ใช้งานง่าย สะดวก และรวดเร็ว สามารถนำข้อมูลของผู้ป่วยเข้าสู่ระบบเพื่อวิเคราะห์และแสดงผลการพยากรณ์ความเสี่ยงได้อย่างเป็นระบบ โดยผลลัพธ์ที่ได้สามารถนำไปใช้เป็นข้อมูลประกอบการประเมินและการดูแลผู้ป่วยของบุคลากรทางการแพทย์
+                </p>
+              </div>
+
+              <div style={{ background: '#f8fafc', padding: 18, borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.8, margin: 0 }}>
+                  เป้าหมายของเราคือการนำเทคโนโลยีและ Machine Learning มาประยุกต์ใช้ให้เกิดประโยชน์ในด้านสุขภาพ พร้อมพัฒนาระบบอย่างต่อเนื่อง เพื่อให้มีความเหมาะสมต่อการใช้งานจริง และเป็นเครื่องมือที่ช่วยสนับสนุนการป้องกันและประเมินความเสี่ยงของโรคหลอดเลือดสมองได้อย่างมีประสิทธิภาพ
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -1738,7 +1868,11 @@ function App() {
       <aside className="sidebar">
         <div className="sidebar-header">
           <Brain size={24} color="#3b82f6" />
-          <h1>Stroke Prediction</h1>
+          <h1>StrokeRP</h1>
+          <p className="sidebar-subtitle">
+            Stroke Risk Prediction<br />
+            Using Data Mining
+          </p>
         </div>
 
         <div className="sidebar-nav">
