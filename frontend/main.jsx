@@ -612,6 +612,105 @@ function DiseaseInfoView() {
           </div>
         ))}
       </div>
+
+      {/* Clinical Risk Assessment Criteria Table */}
+      <div className="feature-card" style={{ marginTop: 24, padding: '24px 32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
+          <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', margin: 0 }}>
+            เกณฑ์ระดับความเสี่ยงและคำแนะนำทางการแพทย์ (Clinical Interpretation)
+          </h3>
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#64748b', background: '#f1f5f9', padding: '4px 10px', borderRadius: 6 }}>
+            มาตรฐานการประเมิน
+          </span>
+        </div>
+
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
+                <th style={{ padding: '12px 14px', fontWeight: 800, color: '#334155' }}>ระดับความเสี่ยง (Risk Category)</th>
+                <th style={{ padding: '12px 14px', fontWeight: 800, color: '#334155' }}>เปอร์เซ็นต์ความเสี่ยง</th>
+                <th style={{ padding: '12px 14px', fontWeight: 800, color: '#334155' }}>คำแนะนำทางการแพทย์ (Clinical Interpretation)</th>
+                <th style={{ padding: '12px 14px', fontWeight: 800, color: '#334155', textAlign: 'center' }}>การแสดงผลสี</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                {
+                  name: 'ความเสี่ยงต่ำ (Low Risk)',
+                  range: 'น้อยกว่า 5%',
+                  advice: 'เน้นการดูแลสุขภาพพื้นฐาน ป้องกันไม่ให้เกิดปัจจัยเสี่ยง',
+                  colorName: 'สีเขียว',
+                  color: '#16a34a',
+                  bg: '#f0fdf4',
+                  border: '#bbf7d0',
+                },
+                {
+                  name: 'ความเสี่ยงคาบเกี่ยว (Borderline)',
+                  range: '5% - 7.4%',
+                  advice: 'เริ่มมีความเสี่ยง ควรเริ่มปรับเปลี่ยนพฤติกรรมการใช้ชีวิต',
+                  colorName: 'สีเหลืองอ่อน',
+                  color: '#ca8a04',
+                  bg: '#fefce8',
+                  border: '#fef08a',
+                },
+                {
+                  name: 'ความเสี่ยงปานกลาง (Intermediate)',
+                  range: '7.5% - 19.9%',
+                  advice: 'ควรพบแพทย์เพื่อพิจารณาควบคุมความดันและปัจจัยเสี่ยงอื่นๆ',
+                  colorName: 'สีเหลือง / ส้ม',
+                  color: '#ea580c',
+                  bg: '#fff7ed',
+                  border: '#fed7aa',
+                },
+                {
+                  name: 'ความเสี่ยงสูง (High Risk)',
+                  range: '20% ขึ้นไป',
+                  advice: 'มีความเสี่ยงอันตราย ต้องอยู่ในการดูแลของแพทย์และพิจารณาให้ยา',
+                  colorName: 'สีแดง',
+                  color: '#dc2626',
+                  bg: '#fef2f2',
+                  border: '#fecaca',
+                }
+              ].map((tier, idx) => (
+                <tr 
+                  key={idx} 
+                  style={{ 
+                    background: '#ffffff',
+                    borderBottom: '1px solid #eef3f6',
+                    borderLeft: `5px solid ${tier.color}`,
+                    transition: 'background 0.2s ease'
+                  }}
+                >
+                  <td style={{ padding: '12px 14px', fontWeight: 700, color: tier.color }}>
+                    {tier.name}
+                  </td>
+                  <td style={{ padding: '12px 14px', fontWeight: 600, color: '#475569' }}>
+                    {tier.range}
+                  </td>
+                  <td style={{ padding: '12px 14px', color: '#334155', lineHeight: 1.5, fontWeight: 500 }}>
+                    {tier.advice}
+                  </td>
+                  <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                    <span style={{ 
+                      display: 'inline-block',
+                      padding: '4px 10px', 
+                      borderRadius: 6, 
+                      background: tier.bg, 
+                      color: tier.color, 
+                      fontWeight: 800, 
+                      fontSize: 12,
+                      border: `1px solid ${tier.border}`
+                    }}>
+                      {tier.colorName}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
@@ -619,10 +718,9 @@ function DiseaseInfoView() {
 /* ===================== ABOUT US VIEW (ทีมงานของเรา) ===================== */
 /* ===================== ABOUT US VIEW (เกี่ยวกับเรา) ===================== */
 function AboutUsView() {
-  const [subTab, setSubTab] = useState('all');
+  const [subTab, setSubTab] = useState('about');
 
   const subNav = [
-    { id: 'all', label: 'รวมเนื้อหาทั้งหมด', icon: FileText },
     { id: 'about', label: '1. เกี่ยวกับเรา', icon: Info },
     { id: 'objectives', label: '2. วัตถุประสงค์', icon: CheckCircle2 },
     { id: 'highlights', label: '3. จุดเด่นของระบบ', icon: Activity },
@@ -694,7 +792,7 @@ function AboutUsView() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
         {/* SECTION: เกี่ยวกับเรา */}
-        {(subTab === 'all' || subTab === 'about') && (
+        {subTab === 'about' && (
           <div className="feature-card" style={{ padding: '32px 36px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
               <div style={{ width: 48, height: 48, borderRadius: 14, background: '#edf5ff', display: 'grid', placeItems: 'center' }}>
@@ -735,7 +833,7 @@ function AboutUsView() {
         )}
 
         {/* SECTION: วัตถุประสงค์ของระบบ */}
-        {(subTab === 'all' || subTab === 'objectives') && (
+        {subTab === 'objectives' && (
           <div className="feature-card" style={{ padding: '32px 36px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
               <div style={{ width: 48, height: 48, borderRadius: 14, background: '#eff6ff', display: 'grid', placeItems: 'center' }}>
@@ -765,7 +863,7 @@ function AboutUsView() {
         )}
 
         {/* SECTION: จุดเด่นของระบบ */}
-        {(subTab === 'all' || subTab === 'highlights') && (
+        {subTab === 'highlights' && (
           <div className="feature-card" style={{ padding: '32px 36px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
               <div style={{ width: 48, height: 48, borderRadius: 14, background: '#f5f3ff', display: 'grid', placeItems: 'center' }}>
@@ -821,7 +919,7 @@ function AboutUsView() {
         )}
 
         {/* SECTION: เทคโนโลยีที่ใช้ */}
-        {(subTab === 'all' || subTab === 'tech') && (
+        {subTab === 'tech' && (
           <div className="feature-card" style={{ padding: '32px 36px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
               <div style={{ width: 48, height: 48, borderRadius: 14, background: '#f0fdf4', display: 'grid', placeItems: 'center' }}>
@@ -858,7 +956,7 @@ function AboutUsView() {
         )}
 
         {/* SECTION: ผู้พัฒนาระบบ */}
-        {(subTab === 'all' || subTab === 'developers') && (
+        {subTab === 'developers' && (
           <div className="feature-card" style={{ padding: '32px 36px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
               <div style={{ width: 48, height: 48, borderRadius: 14, background: '#fef3c7', display: 'grid', placeItems: 'center' }}>
@@ -915,7 +1013,7 @@ function AboutUsView() {
         )}
 
         {/* SECTION: ติดต่อเรา */}
-        {(subTab === 'all' || subTab === 'contact') && (
+        {subTab === 'contact' && (
           <div className="feature-card" style={{ padding: '32px 36px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
               <div style={{ width: 48, height: 48, borderRadius: 14, background: '#ecfdf5', display: 'grid', placeItems: 'center' }}>
@@ -1237,15 +1335,73 @@ function PredictView() {
 function ResultView({ result, form, onReset }) {
   const pred = result.prediction;
   const probs = result.probabilities || {};
-  const isHigh = pred !== 'No_Stroke';
 
   const labelMap = { 
     'No_Stroke': 'ปกติ (No Stroke)', 
     'Ischemic': 'โรคหลอดเลือดสมองตีบ (Ischemic Stroke)', 
     'Hemorrhagic': 'โรคหลอดเลือดสมองแตก (Hemorrhagic Stroke)' 
   };
-  const colorMap = { 'No_Stroke': '#27ae60', 'Ischemic': '#ff9800', 'Hemorrhagic': '#e74c3c' };
-  const barColors = { 'No_Stroke': '#27ae60', 'Ischemic': '#ff9800', 'Hemorrhagic': '#e74c3c' };
+  const colorMap = { 'No_Stroke': '#16a34a', 'Ischemic': '#ea580c', 'Hemorrhagic': '#dc2626' };
+  const barColors = { 'No_Stroke': '#16a34a', 'Ischemic': '#ea580c', 'Hemorrhagic': '#dc2626' };
+
+  // Calculate total Stroke Risk Percentage (Ischemic + Hemorrhagic or 100 - No_Stroke)
+  const strokeRiskPct = result.stroke_risk_pct !== undefined 
+    ? Number(result.stroke_risk_pct) 
+    : roundNum(Number(probs['Ischemic'] || 0) + Number(probs['Hemorrhagic'] || 0));
+
+  // Determine 4-level clinical risk tier according to Image 2
+  const riskTiers = [
+    {
+      key: 'low',
+      name: 'ความเสี่ยงต่ำ (Low Risk)',
+      range: 'น้อยกว่า 5%',
+      advice: 'เน้นการดูแลสุขภาพพื้นฐาน ป้องกันไม่ให้เกิดปัจจัยเสี่ยง',
+      colorName: 'สีเขียว',
+      color: '#16a34a',
+      bg: '#f0fdf4',
+      border: '#bbf7d0',
+      match: strokeRiskPct < 5.0
+    },
+    {
+      key: 'borderline',
+      name: 'ความเสี่ยงคาบเกี่ยว (Borderline)',
+      range: '5% - 7.4%',
+      advice: 'เริ่มมีความเสี่ยง ควรเริ่มปรับเปลี่ยนพฤติกรรมการใช้ชีวิต',
+      colorName: 'สีเหลืองอ่อน',
+      color: '#ca8a04',
+      bg: '#fefce8',
+      border: '#fef08a',
+      match: strokeRiskPct >= 5.0 && strokeRiskPct < 7.5
+    },
+    {
+      key: 'intermediate',
+      name: 'ความเสี่ยงปานกลาง (Intermediate)',
+      range: '7.5% - 19.9%',
+      advice: 'ควรพบแพทย์เพื่อพิจารณาควบคุมความดันและปัจจัยเสี่ยงอื่นๆ',
+      colorName: 'สีเหลือง / ส้ม',
+      color: '#ea580c',
+      bg: '#fff7ed',
+      border: '#fed7aa',
+      match: strokeRiskPct >= 7.5 && strokeRiskPct < 20.0
+    },
+    {
+      key: 'high',
+      name: 'ความเสี่ยงสูง (High Risk)',
+      range: '20% ขึ้นไป',
+      advice: 'มีความเสี่ยงอันตราย ต้องอยู่ในการดูแลของแพทย์และพิจารณาให้ยา',
+      colorName: 'สีแดง',
+      color: '#dc2626',
+      bg: '#fef2f2',
+      border: '#fecaca',
+      match: strokeRiskPct >= 20.0
+    }
+  ];
+
+  const currentTier = riskTiers.find(t => t.match) || riskTiers[3];
+
+  function roundNum(n) {
+    return Math.round(n * 10) / 10;
+  }
 
   const recommendations = {
     'Ischemic': ['รีบพาผู้ป่วยพบแพทย์ทันที', 'ควบคุมความดันโลหิตให้ต่ำกว่า 130/80 mmHg', 'งดสูบบุหรี่และแอลกอฮอล์', 'ออกกำลังกายเบาๆ 30 นาที/วัน', 'รับประทานยาต้านเกล็ดเลือดตามแพทย์สั่ง', 'ลดอาหารไขมันและเค็ม'],
@@ -1253,51 +1409,65 @@ function ResultView({ result, form, onReset }) {
     'No_Stroke': ['ดูแลสุขภาพให้แข็งแรงอย่างต่อเนื่อง', 'ตรวจสุขภาพประจำปีทุกปี', 'รับประทานผัก ผลไม้ให้หลากหลาย', 'ออกกำลังกายสม่ำเสมออย่างน้อย 150 นาที/สัปดาห์', 'ลดความเครียดในชีวิตประจำวัน', 'นอนหลับพักผ่อนให้เพียงพอ'],
   };
 
+  // Helper to get color dynamically based on percentage according to the clinical table in Image 2
+  function getTierColorByPercent(key, value) {
+    const pct = Number(value) || 0;
+    if (key === 'No_Stroke') {
+      return '#16a34a'; // ปกติ (No Stroke) เป็นสีเขียวเสมอ
+    } else {
+      if (pct < 5.0) return '#16a34a';   // Low Risk (< 5%) -> Green
+      if (pct < 7.5) return '#ca8a04';   // Borderline (5 - 7.4%) -> Light Yellow
+      if (pct < 20.0) return '#ea580c';  // Intermediate (7.5 - 19.9%) -> Orange
+      return '#dc2626';                  // High Risk (>= 20%) -> Red
+    }
+  }
+
   return (
     <div>
       <div className="hero-band" style={{ marginBottom: 24 }}>
         <div>
           <span className="eyebrow">RESULT PAGE (ผลการพยากรณ์)</span>
           <h2>ผลการพยากรณ์โรคหลอดเลือดสมอง</h2>
-          <p>ผลลัพธ์จากโมเดล AI พร้อมคำอธิบายและคำแนะนำ</p>
+          <p>ผลลัพธ์จากโมเดล AI พร้อมคำอธิบายและเกณฑ์ประเมินระดับความเสี่ยง</p>
         </div>
       </div>
 
-      {/* 1. Main Prediction Result Card (Full Width & Prominent Display) */}
+      {/* 1. Main Prediction Result Card */}
       <div className="feature-card" style={{ marginBottom: 20, padding: '28px 36px' }}>
         <div style={{ textAlign: 'center', padding: '10px 0 24px', borderBottom: '1px solid #eef3f6', marginBottom: 20 }}>
-          <div style={{ display: 'inline-block', padding: '10px 24px', borderRadius: 8, background: isHigh ? '#fde8e8' : '#e8f5e9', marginBottom: 16 }}>
-            <AlertTriangle size={20} color={isHigh ? '#e74c3c' : '#27ae60'} style={{ marginRight: 8, verticalAlign: 'middle' }} />
-            <span style={{ fontWeight: 800, color: isHigh ? '#e74c3c' : '#27ae60', fontSize: 15 }}>
-              {isHigh ? 'ความเสี่ยงสูง (High Risk)' : 'ความเสี่ยงต่ำ (Low Risk)'}
-            </span>
+          
+          {/* Disease Title (ตรงกลาง - แสดงเปอร์เซ็นต์ของผลพยากรณ์หลัก) */}
+          <div style={{ fontSize: 34, fontWeight: 900, color: getTierColorByPercent(pred, probs[pred]), marginBottom: 8, letterSpacing: '-0.5px' }}>
+            {labelMap[pred] || pred} {probs[pred] !== undefined ? `(${Number(probs[pred]).toFixed(1)}%)` : ''}
           </div>
-          <div style={{ fontSize: 36, fontWeight: 900, color: colorMap[pred] || '#134e5e', marginBottom: 8, letterSpacing: '-0.5px' }}>
-            {labelMap[pred] || pred}
-          </div>
-          <div style={{ fontSize: 14, color: '#7a9aac', fontWeight: 600 }}>ผลการพยากรณ์จาก Random Forest Model</div>
+          <div style={{ fontSize: 14, color: '#64748b', fontWeight: 600 }}>ผลการพยากรณ์จาก Random Forest Model</div>
         </div>
 
+        {/* Probability Bars (ด้านล่าง - สีหลอดตรงกับระดับเปอร์เซ็นต์) */}
         <div>
           <p style={{ fontSize: 15, fontWeight: 800, color: '#134e5e', marginBottom: 14 }}>ความน่าจะเป็นแยกตามประเภท:</p>
-          {Object.entries(probs).map(([k, v]) => (
-            <div key={k} className="prob-bar-wrap">
-              <div className="prob-bar-label">
-                <span style={{ fontSize: 15, fontWeight: 700 }}>{labelMap[k] || k}</span>
-                <span style={{ color: barColors[k], fontSize: 15, fontWeight: 800 }}>{v}%</span>
+          {Object.entries(probs).map(([k, v]) => {
+            const barColor = getTierColorByPercent(k, v);
+            const formattedPct = Number(v).toFixed(1);
+            return (
+              <div key={k} className="prob-bar-wrap">
+                <div className="prob-bar-label">
+                  <span style={{ fontSize: 15, fontWeight: 700 }}>{labelMap[k] || k}</span>
+                  <span style={{ color: barColor, fontSize: 15, fontWeight: 800 }}>{formattedPct}%</span>
+                </div>
+                <div className="prob-bar-bg">
+                  <div className="prob-bar-fill" style={{ width: `${formattedPct}%`, background: barColor }} />
+                </div>
               </div>
-              <div className="prob-bar-bg">
-                <div className="prob-bar-fill" style={{ width: `${v}%`, background: barColors[k] }} />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      {/* 2. AI Explanation Card (Moved Directly Below Result Card) */}
+      {/* 2. AI Explanation Card */}
       <div className="feature-card" style={{ marginBottom: 20, padding: '24px 32px' }}>
         <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
-          อธิบายผล
+          อธิบายผลและข้อมูลสุขภาพผู้ป่วย
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
           {[
@@ -1318,10 +1488,10 @@ function ResultView({ result, form, onReset }) {
         </div>
       </div>
 
-      {/* 3. Recommendation Card */}
+      {/* 4. Recommendation Card */}
       <div className="feature-card" style={{ marginBottom: 24, padding: '24px 32px' }}>
         <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
-          คำแนะนำ
+          คำแนะนำการดูแลรักษา
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 10 }}>
           {(recommendations[pred] || []).map((r, i) => (

@@ -225,20 +225,51 @@ def predict_stroke(request):
         except Exception:
             pass
 
-        # Generate mock/calculated probabilities for display
-        probs_dict = {'No_Stroke': 5, 'Ischemic': 10, 'Hemorrhagic': 5}
-        if pred_label == 'Ischemic':
-            probs_dict = {'No_Stroke': 5, 'Ischemic': 92, 'Hemorrhagic': 3}
-        elif pred_label == 'Hemorrhagic':
-            probs_dict = {'No_Stroke': 4, 'Ischemic': 4, 'Hemorrhagic': 92}
+        # Calculate probabilities from model
+        probs_dict = {'No_Stroke': 0.0, 'Ischemic': 0.0, 'Hemorrhagic': 0.0}
+        if hasattr(model, "predict_proba"):
+            raw_probs = model.predict_proba(df)[0]
+            classes = list(label_encoder.classes_)
+            for idx, c in enumerate(classes):
+                probs_dict[c] = round(float(raw_probs[idx]) * 100, 1)
         else:
-            probs_dict = {'No_Stroke': 95, 'Ischemic': 3, 'Hemorrhagic': 2}
+            if pred_label == 'Ischemic':
+                probs_dict = {'No_Stroke': 5.0, 'Ischemic': 92.0, 'Hemorrhagic': 3.0}
+            elif pred_label == 'Hemorrhagic':
+                probs_dict = {'No_Stroke': 4.0, 'Ischemic': 4.0, 'Hemorrhagic': 92.0}
+            else:
+                probs_dict = {'No_Stroke': 95.0, 'Ischemic': 3.0, 'Hemorrhagic': 2.0}
+
+        # Calculate stroke risk percentage (Ischemic + Hemorrhagic)
+        stroke_risk_pct = round(float(probs_dict.get('Ischemic', 0.0)) + float(probs_dict.get('Hemorrhagic', 0.0)), 1)
+        
+        # Determine 4-level Risk Category matching clinical criteria
+        if stroke_risk_pct < 5.0:
+            risk_category = 'ความเสี่ยงต่ำ (Low Risk)'
+            risk_advice = 'เน้นการดูแลสุขภาพพื้นฐาน ป้องกันไม่ให้เกิดปัจจัยเสี่ยง'
+            risk_color = 'green'
+        elif stroke_risk_pct < 7.5:
+            risk_category = 'ความเสี่ยงคาบเกี่ยว (Borderline)'
+            risk_advice = 'เริ่มมีความเสี่ยง ควรเริ่มปรับเปลี่ยนพฤติกรรมการใช้ชีวิต'
+            risk_color = 'light_yellow'
+        elif stroke_risk_pct < 20.0:
+            risk_category = 'ความเสี่ยงปานกลาง (Intermediate)'
+            risk_advice = 'ควรพบแพทย์เพื่อพิจารณาควบคุมความดันและปัจจัยเสี่ยงอื่นๆ'
+            risk_color = 'orange'
+        else:
+            risk_category = 'ความเสี่ยงสูง (High Risk)'
+            risk_advice = 'มีความเสี่ยงอันตราย ต้องอยู่ในการดูแลของแพทย์และพิจารณาให้ยา'
+            risk_color = 'red'
 
         return JsonResponse({
             'success': True,
             'prediction': pred_label,
             'confidence': confidence,
             'probabilities': probs_dict,
+            'stroke_risk_pct': stroke_risk_pct,
+            'risk_category': risk_category,
+            'risk_advice': risk_advice,
+            'risk_color': risk_color,
             'features_used': input_data,
             'features_scaled': features_scaled
         })
