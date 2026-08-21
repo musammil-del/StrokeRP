@@ -53,7 +53,6 @@ const tabs = [
   { id: 'disease_info', label: 'โรคหลอดเลือดสมอง', icon: HeartPulse, title: 'เกี่ยวกับโรคหลอดเลือดสมอง', subtitle: 'รู้จักอาการ สาเหตุ และสัญญาณเตือนภัยเงียบที่ควรรีบพบแพทย์' },
   { id: 'predict', label: 'พยากรณ์โรค', icon: ClipboardCheck, title: 'การพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง', subtitle: 'กรอกข้อมูลผู้ป่วยและข้อมูลสุขภาพเพื่อประเมินความเสี่ยงด้วย AI' },
   { id: 'dataset', label: 'จัดการข้อมูลผู้ป่วย', icon: Database, title: 'จัดการข้อมูลผู้ป่วยที่พยากรณ์', subtitle: 'เพิ่ม ลบ และแก้ไขข้อมูลของผู้ป่วยที่มีความเสี่ยงโรคหลอดเลือดสมอง', adminOnly: false },
-  { id: 'about_us', label: 'เกี่ยวกับเรา', icon: Info, title: 'เกี่ยวกับเรา (About Us)', subtitle: 'ข้อมูลทีมงาน วัตถุประสงค์ และความเป็นมาของระบบพยากรณ์โรคหลอดเลือดสมอง', adminOnly: false },
   { id: 'users', label: 'จัดการผู้ใช้', icon: UsersRound, title: 'การจัดการผู้ใช้ (User Management)', subtitle: 'จัดการบัญชีผู้ใช้ สิทธิ์ และระดับการเข้าถึงระบบ', adminOnly: true },
 ];
 
@@ -715,393 +714,7 @@ function DiseaseInfoView() {
   );
 }
 
-/* ===================== ABOUT US VIEW (ทีมงานของเรา) ===================== */
-/* ===================== ABOUT US VIEW (เกี่ยวกับเรา) ===================== */
-function AboutUsView() {
-  const [subTab, setSubTab] = useState('about');
 
-  const subNav = [
-    { id: 'about', label: '1. เกี่ยวกับเรา', icon: Info },
-    { id: 'objectives', label: '2. วัตถุประสงค์', icon: CheckCircle2 },
-    { id: 'highlights', label: '3. จุดเด่นของระบบ', icon: Activity },
-    { id: 'tech', label: '4. เทคโนโลยีที่ใช้', icon: Cpu },
-    { id: 'developers', label: '5. ผู้พัฒนาระบบ', icon: GraduationCap },
-    { id: 'contact', label: '6. ติดต่อเรา', icon: Mail },
-  ];
-
-  return (
-    <div>
-      {/* Header Band */}
-      <div className="hero-band" style={{ marginBottom: 20 }}>
-        <div>
-          <span className="eyebrow">ABOUT SYSTEM &amp; TEAM</span>
-          <h2>เกี่ยวกับเรา (About Us)</h2>
-          <p style={{ fontWeight: 700, fontSize: 16, color: '#1877f2', marginBottom: 4 }}>ทำความรู้จัก StrokeRP</p>
-          <p style={{ maxWidth: 780, lineHeight: 1.6 }}>
-            เรียนรู้แนวคิด วัตถุประสงค์ จุดเด่น และเทคโนโลยีที่อยู่เบื้องหลังระบบพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง
-          </p>
-        </div>
-        <div className="hero-illustration">
-          <Info size={54} />
-        </div>
-      </div>
-
-      {/* Navigation Sub-Tabs */}
-      <div style={{
-        display: 'flex',
-        gap: 8,
-        flexWrap: 'wrap',
-        marginBottom: 24,
-        background: '#ffffff',
-        padding: '10px 14px',
-        borderRadius: 14,
-        boxShadow: '0 4px 14px rgba(0,0,0,0.04)',
-        border: '1px solid #e2e8f0'
-      }}>
-        {subNav.map(t => {
-          const active = subTab === t.id;
-          const Icon = t.icon;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setSubTab(t.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '10px 18px',
-                borderRadius: 10,
-                border: 'none',
-                background: active ? '#1877f2' : 'transparent',
-                color: active ? '#ffffff' : '#475569',
-                fontWeight: active ? 800 : 600,
-                fontSize: 13,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontFamily: 'inherit'
-              }}
-            >
-              <Icon size={16} color={active ? '#ffffff' : '#64748b'} />
-              <span>{t.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* CONTENT SECTIONS */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-
-        {/* SECTION: เกี่ยวกับเรา */}
-        {subTab === 'about' && (
-          <div className="feature-card" style={{ padding: '32px 36px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#edf5ff', display: 'grid', placeItems: 'center' }}>
-                <Info size={26} color="#1877f2" />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: 0 }}>เกี่ยวกับเรา (About Us)</h3>
-                <div style={{ fontSize: 13, color: '#64748b' }}>เว็บแอปพลิเคชันพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง (StrokeRP)</div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{ background: '#f8fafc', padding: 18, borderRadius: 12, border: '1px solid #e2e8f0' }}>
-                <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.8, margin: 0 }}>
-                  ทีมงานของเราประกอบด้วยผู้พัฒนาที่มีความสนใจด้านเทคโนโลยีและการประยุกต์ใช้ปัญญาประดิษฐ์ในการดูแลสุขภาพ โดยมุ่งมั่นพัฒนาระบบที่สามารถนำเทคโนโลยีมาช่วยสนับสนุนการทำงานของบุคลากรทางการแพทย์ และเพิ่มความสะดวกในการประเมินข้อมูลของผู้ป่วย
-                </p>
-              </div>
-
-              <div style={{ background: '#f8fafc', padding: 18, borderRadius: 12, border: '1px solid #e2e8f0' }}>
-                <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.8, margin: 0 }}>
-                  เว็บแอปพลิเคชันพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง พัฒนาขึ้นเพื่อสนับสนุนบุคลากรทางการแพทย์ในการประเมินความเสี่ยงของผู้ป่วย โดยนำข้อมูลทางสุขภาพมาวิเคราะห์ด้วยเทคนิค Machine Learning เพื่อช่วยพยากรณ์ความเสี่ยงและแสดงผลในรูปแบบที่เข้าใจง่าย ช่วยให้ผู้ใช้งานสามารถเห็นข้อมูลและผลการพยากรณ์ได้อย่างชัดเจน
-                </p>
-              </div>
-
-              <div style={{ background: '#f8fafc', padding: 18, borderRadius: 12, border: '1px solid #e2e8f0' }}>
-                <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.8, margin: 0 }}>
-                  เว็บแอปพลิเคชันพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง ได้รับการออกแบบให้ใช้งานง่าย สะดวก และรวดเร็ว สามารถนำข้อมูลของผู้ป่วยเข้าสู่ระบบเพื่อวิเคราะห์และแสดงผลการพยากรณ์ความเสี่ยงได้อย่างเป็นระบบ โดยผลลัพธ์ที่ได้สามารถนำไปใช้เป็นข้อมูลประกอบการประเมินและการดูแลผู้ป่วยของบุคลากรทางการแพทย์
-                </p>
-              </div>
-
-              <div style={{ background: '#f8fafc', padding: 18, borderRadius: 12, border: '1px solid #e2e8f0' }}>
-                <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.8, margin: 0 }}>
-                  เป้าหมายของเราคือการนำเทคโนโลยีและ Machine Learning มาประยุกต์ใช้ให้เกิดประโยชน์ในด้านสุขภาพ พร้อมพัฒนาระบบอย่างต่อเนื่อง เพื่อให้มีความเหมาะสมต่อการใช้งานจริง และเป็นเครื่องมือที่ช่วยสนับสนุนการป้องกันและประเมินความเสี่ยงของโรคหลอดเลือดสมองได้อย่างมีประสิทธิภาพ
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* SECTION: วัตถุประสงค์ของระบบ */}
-        {subTab === 'objectives' && (
-          <div className="feature-card" style={{ padding: '32px 36px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#eff6ff', display: 'grid', placeItems: 'center' }}>
-                <CheckCircle2 size={26} color="#2563eb" />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: 0 }}>วัตถุประสงค์ของระบบ</h3>
-                <div style={{ fontSize: 13, color: '#64748b' }}>System Objectives</div>
-              </div>
-            </div>
-            <div className="grid-2" style={{ gap: 14 }}>
-              {[
-                'สนับสนุนการประเมินความเสี่ยงของโรคหลอดเลือดสมอง',
-                'ช่วยลดระยะเวลาในการวิเคราะห์ข้อมูลผู้ป่วย',
-                'นำเทคโนโลยี Machine Learning มาช่วยสนับสนุนการตัดสินใจ',
-                'จัดเก็บและแสดงประวัติผลการพยากรณ์อย่างเป็นระบบ'
-              ].map((text, idx) => (
-                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#ffffff', padding: '16px 20px', borderRadius: 12, border: '1.5px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: '#dbeafe', display: 'grid', placeItems: 'center', color: '#1d4ed8', fontWeight: 900, fontSize: 13, flexShrink: 0 }}>
-                    {idx + 1}
-                  </div>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#1e293b' }}>{text}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* SECTION: จุดเด่นของระบบ */}
-        {subTab === 'highlights' && (
-          <div className="feature-card" style={{ padding: '32px 36px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#f5f3ff', display: 'grid', placeItems: 'center' }}>
-                <Activity size={26} color="#7c3aed" />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: 0 }}>จุดเด่นของระบบ</h3>
-                <div style={{ fontSize: 13, color: '#64748b' }}>Key Features &amp; Highlights</div>
-              </div>
-            </div>
-            <div className="grid-2" style={{ gap: 16 }}>
-              <div style={{ background: '#ffffff', padding: 20, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                  <Brain size={22} color="#2563eb" />
-                  <h4 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>พยากรณ์ด้วย Machine Learning</h4>
-                </div>
-                <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6, margin: 0 }}>
-                  นำโมเดล Machine Learning มาใช้ในการวิเคราะห์ข้อมูลและพยากรณ์ความเสี่ยง
-                </p>
-              </div>
-
-              <div style={{ background: '#ffffff', padding: 20, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                  <BarChart3 size={22} color="#16a34a" />
-                  <h4 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>แสดงผลการพยากรณ์</h4>
-                </div>
-                <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6, margin: 0 }}>
-                  แสดงผลลัพธ์ในรูปแบบที่เข้าใจง่าย พร้อมเปอร์เซ็นต์ความเสี่ยง
-                </p>
-              </div>
-
-              <div style={{ background: '#ffffff', padding: 20, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                  <Database size={22} color="#d97706" />
-                  <h4 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>จัดเก็บข้อมูลอย่างเป็นระบบ</h4>
-                </div>
-                <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6, margin: 0 }}>
-                  บันทึกข้อมูลและประวัติผลการพยากรณ์เพื่อใช้ในการติดตามและตรวจสอบ
-                </p>
-              </div>
-
-              <div style={{ background: '#ffffff', padding: 20, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                  <Activity size={22} color="#7c3aed" />
-                  <h4 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>Dashboard</h4>
-                </div>
-                <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6, margin: 0 }}>
-                  แสดงข้อมูลสถิติและภาพรวมของการใช้งานระบบในรูปแบบกราฟและข้อมูลสรุป
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* SECTION: เทคโนโลยีที่ใช้ */}
-        {subTab === 'tech' && (
-          <div className="feature-card" style={{ padding: '32px 36px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#f0fdf4', display: 'grid', placeItems: 'center' }}>
-                <Cpu size={26} color="#16a34a" />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: 0 }}>เทคโนโลยีที่ใช้</h3>
-                <div style={{ fontSize: 13, color: '#64748b' }}>Technology Stack</div>
-              </div>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
-              <div style={{ background: '#ffffff', padding: 18, borderRadius: 12, border: '1.5px solid #e2e8f0' }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#0284c7', background: '#e0f2fe', padding: '2px 8px', borderRadius: 4, display: 'inline-block', marginBottom: 6 }}>Frontend</div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>React.js</div>
-              </div>
-              <div style={{ background: '#ffffff', padding: 18, borderRadius: 12, border: '1.5px solid #e2e8f0' }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#15803d', background: '#dcfce7', padding: '2px 8px', borderRadius: 4, display: 'inline-block', marginBottom: 6 }}>Backend</div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>Django</div>
-              </div>
-              <div style={{ background: '#ffffff', padding: 18, borderRadius: 12, border: '1.5px solid #e2e8f0' }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#0369a1', background: '#e0f2fe', padding: '2px 8px', borderRadius: 4, display: 'inline-block', marginBottom: 6 }}>Database</div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>MySQL</div>
-              </div>
-              <div style={{ background: '#ffffff', padding: 18, borderRadius: 12, border: '1.5px solid #e2e8f0' }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#d97706', background: '#fef3c7', padding: '2px 8px', borderRadius: 4, display: 'inline-block', marginBottom: 6 }}>Machine Learning</div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: '#0f172a' }}>Decision Tree, Random Forest และ XGBoost</div>
-              </div>
-              <div style={{ background: '#ffffff', padding: 18, borderRadius: 12, border: '1.5px solid #e2e8f0' }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#7c3aed', background: '#f3e8ff', padding: '2px 8px', borderRadius: 4, display: 'inline-block', marginBottom: 6 }}>Data Processing</div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: '#0f172a' }}>Python, Pandas, NumPy, Scikit-learn</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* SECTION: ผู้พัฒนาระบบ */}
-        {subTab === 'developers' && (
-          <div className="feature-card" style={{ padding: '32px 36px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#fef3c7', display: 'grid', placeItems: 'center' }}>
-                <GraduationCap size={26} color="#d97706" />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: 0 }}>ผู้พัฒนาระบบ</h3>
-                <div style={{ fontSize: 13, color: '#64748b' }}>ทีมพัฒนาเว็บแอปพลิเคชันพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง</div>
-              </div>
-            </div>
-            <div className="grid-3" style={{ gap: 16 }}>
-              <div style={{ background: '#ffffff', borderRadius: 14, padding: 20, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                  <Users size={20} color="#1877f2" />
-                  <h4 style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', margin: 0 }}>ชื่อผู้จัดทำ</h4>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: 8, fontSize: 13, fontWeight: 800, color: '#0f172a', border: '1px solid #e2e8f0' }}>
-                    1. มูซัมมิลล์  อีซอ
-                  </div>
-                  <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: 8, fontSize: 13, fontWeight: 800, color: '#0f172a', border: '1px solid #e2e8f0' }}>
-                    2. ฟารุก  กาแมแล
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ background: '#ffffff', borderRadius: 14, padding: 20, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                  <Award size={20} color="#d97706" />
-                  <h4 style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', margin: 0 }}>อาจารย์ที่ปรึกษา</h4>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div style={{ background: '#fffbeb', padding: '8px 12px', borderRadius: 8, fontSize: 12, fontWeight: 800, color: '#0f172a', border: '1px solid #fef08a' }}>
-                    ผศ.ดร.กรสิริณัฐ โรจนวรรณ์ (หลัก)
-                  </div>
-                  <div style={{ background: '#fffbeb', padding: '8px 12px', borderRadius: 8, fontSize: 12, fontWeight: 800, color: '#0f172a', border: '1px solid #fef08a' }}>
-                    ผศ.วิยุดา เพชรจิรโชติกุล (ร่วม)
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ background: '#ffffff', borderRadius: 14, padding: 20, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                  <GraduationCap size={20} color="#16a34a" />
-                  <h4 style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', margin: 0 }}>สถาบันการศึกษา</h4>
-                </div>
-                <div style={{ background: '#f0fdf4', padding: '10px 12px', borderRadius: 8, border: '1px solid #bbf7d0' }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: '#166534' }}>มหาวิทยาลัยนราธิวาสราชนครินทร์</div>
-                  <div style={{ fontSize: 12, color: '#15803d', marginTop: 2 }}>สาขาวิชาวิศวกรรมคอมพิวเตอร์ คณะวิศวกรรมศาสตร์</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* SECTION: ติดต่อเรา */}
-        {subTab === 'contact' && (
-          <div className="feature-card" style={{ padding: '32px 36px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#ecfdf5', display: 'grid', placeItems: 'center' }}>
-                <Mail size={26} color="#059669" />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: 0 }}>ติดต่อเรา</h3>
-                <div style={{ fontSize: 13, color: '#64748b' }}>Contact Information</div>
-              </div>
-            </div>
-
-            <p style={{ fontSize: 14, color: '#475569', marginBottom: 20, lineHeight: 1.6 }}>
-              หากมีข้อสงสัย ข้อเสนอแนะ หรือพบปัญหาในการใช้งานระบบ สามารถติดต่อทีมพัฒนาได้ผ่านช่องทางต่อไปนี้
-            </p>
-
-            <div className="grid-2" style={{ gap: 16, maxWidth: 900 }}>
-              {/* Card 1: ทีมพัฒนา */}
-              <div style={{ background: '#ffffff', padding: 22, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: '#edf5ff', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-                  <Users size={22} color="#1877f2" />
-                </div>
-                <div style={{ flexGrow: 1 }}>
-                  <div style={{ fontSize: 15, fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>ทีมพัฒนา (Developers)</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: '#1e293b', background: '#f8fafc', padding: '6px 12px', borderRadius: 8, border: '1px solid #e2e8f0' }}>
-                      1. มูซัมมิลล์  อีซอ
-                    </div>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: '#1e293b', background: '#f8fafc', padding: '6px 12px', borderRadius: 8, border: '1px solid #e2e8f0' }}>
-                      2. ฟารุก  กาแมแล
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 2: อีเมล */}
-              <div style={{ background: '#ffffff', padding: 22, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: '#eff6ff', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-                  <Mail size={22} color="#2563eb" />
-                </div>
-                <div>
-                  <div style={{ fontSize: 12, color: '#64748b', fontWeight: 700, marginBottom: 4 }}>อีเมล (Email)</div>
-                  <div style={{ fontSize: 16, fontWeight: 900, color: '#2563eb', marginBottom: 2 }}>
-                    6660506007@pnu.ac.th
-                  </div>
-                  <div style={{ fontSize: 12, color: '#64748b' }}>ช่องทางติดต่อและประสานงานสอบถามข้อมูล</div>
-                </div>
-              </div>
-
-              {/* Card 3: โทรศัพท์ */}
-              <div style={{ background: '#ffffff', padding: 22, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: '#f0fdf4', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-                  <Phone size={22} color="#16a34a" />
-                </div>
-                <div>
-                  <div style={{ fontSize: 12, color: '#64748b', fontWeight: 700, marginBottom: 4 }}>โทรศัพท์ (Phone)</div>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: '#166534', marginBottom: 2 }}>
-                    061-137-7646
-                  </div>
-                  <div style={{ fontSize: 12, color: '#64748b' }}>เบอร์โทรศัพท์ติดต่อทีมพัฒนาโครงงาน</div>
-                </div>
-              </div>
-
-              {/* Card 4: ที่อยู่ — มหาวิทยาลัย */}
-              <div style={{ background: '#ffffff', padding: 22, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: '#fef3c7', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-                  <MapPin size={22} color="#d97706" />
-                </div>
-                <div>
-                  <div style={{ fontSize: 12, color: '#64748b', fontWeight: 700, marginBottom: 4 }}>ที่อยู่ — มหาวิทยาลัย (Address)</div>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', marginBottom: 2 }}>
-                    มหาวิทยาลัยนราธิวาสราชนครินทร์
-                  </div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#d97706', marginBottom: 4 }}>
-                    สาขาวิชาวิศวกรรมคอมพิวเตอร์ คณะวิศวกรรมศาสตร์
-                  </div>
-                  <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.5 }}>
-                    99 หมู่ 8 ตำบลโคกเคียน อำเภอเมืองนราธิวาส จังหวัดนราธิวาส 96000
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-      </div>
-    </div>
-  );
-}
 
 /* ===================== PREDICTION WIZARD ===================== */
 function PredictView() {
@@ -1428,7 +1041,7 @@ function ResultView({ result, form, onReset }) {
         <div>
           <span className="eyebrow">RESULT PAGE (ผลการพยากรณ์)</span>
           <h2>ผลการพยากรณ์โรคหลอดเลือดสมอง</h2>
-          <p>ผลลัพธ์จากโมเดล AI พร้อมคำอธิบายและเกณฑ์ประเมินระดับความเสี่ยง</p>
+          <p>ผลการพยากรณ์โรคหลอดเลือดสมอง</p>
         </div>
       </div>
 
@@ -1443,20 +1056,27 @@ function ResultView({ result, form, onReset }) {
           <div style={{ fontSize: 14, color: '#64748b', fontWeight: 600 }}>ผลการพยากรณ์จาก Random Forest Model</div>
         </div>
 
-        {/* Probability Bars (ด้านล่าง - สีหลอดตรงกับระดับเปอร์เซ็นต์) */}
+        {/* Probability Bars (ด้านล่าง - สีหลอดตรงกับระดับเปอร์เซ็นต์ โค้งมนเสมอกันทุกบรรทัด) */}
         <div>
-          <p style={{ fontSize: 15, fontWeight: 800, color: '#134e5e', marginBottom: 14 }}>ความน่าจะเป็นแยกตามประเภท:</p>
+          <p style={{ fontSize: 15, fontWeight: 800, color: '#134e5e', marginBottom: 14 }}>ระดับความเสี่ยงและความน่าจะเป็นรายประเภท:</p>
           {Object.entries(probs).map(([k, v]) => {
             const barColor = getTierColorByPercent(k, v);
             const formattedPct = Number(v).toFixed(1);
             return (
               <div key={k} className="prob-bar-wrap">
                 <div className="prob-bar-label">
-                  <span style={{ fontSize: 15, fontWeight: 700 }}>{labelMap[k] || k}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#1e293b' }}>{labelMap[k] || k}</span>
                   <span style={{ color: barColor, fontSize: 15, fontWeight: 800 }}>{formattedPct}%</span>
                 </div>
-                <div className="prob-bar-bg">
-                  <div className="prob-bar-fill" style={{ width: `${formattedPct}%`, background: barColor }} />
+                <div className="prob-bar-bg" style={{ borderRadius: 999 }}>
+                  <div 
+                    className="prob-bar-fill" 
+                    style={{ 
+                      width: `${formattedPct}%`, 
+                      background: barColor,
+                      borderRadius: 999
+                    }} 
+                  />
                 </div>
               </div>
             );
@@ -1467,7 +1087,7 @@ function ResultView({ result, form, onReset }) {
       {/* 2. AI Explanation Card */}
       <div className="feature-card" style={{ marginBottom: 20, padding: '24px 32px' }}>
         <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
-          อธิบายผลและข้อมูลสุขภาพผู้ป่วย
+          รายละเอียดข้อมูลผู้ป่วย
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
           {[
@@ -1491,7 +1111,7 @@ function ResultView({ result, form, onReset }) {
       {/* 4. Recommendation Card */}
       <div className="feature-card" style={{ marginBottom: 24, padding: '24px 32px' }}>
         <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
-          คำแนะนำการดูแลรักษา
+          คำแนะนำและแนวทางปฏิบัติเบื้องต้น
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 10 }}>
           {(recommendations[pred] || []).map((r, i) => (
@@ -2029,7 +1649,6 @@ function App() {
     disease_info: <DiseaseInfoView />,
     predict: <PredictView />,
     dataset: <DatasetView />,
-    about_us: <AboutUsView />,
     users: <UsersView />,
   };
 
