@@ -394,19 +394,6 @@ def dashboard_stats(request):
                 s['stroke_type_full'] = 'ปกติ (No Stroke)' if s['predicted_stroke_type'] == 'No_Stroke' else 'โรคหลอดเลือดสมองตีบ (Ischemic Stroke)' if s['predicted_stroke_type'] == 'Ischemic' else 'โรคหลอดเลือดสมองแตก (Hemorrhagic Stroke)'
                 recent_list.append(s)
 
-        # Risk Factors Data: Age & Gender Distribution
-        age_groups = [
-            {'range': 'น้อยกว่า 45 ปี', 'count': 285, 'stroke_count': 18, 'risk_pct': 6.3, 'color': '#16a34a'},
-            {'range': '45 - 59 ปี', 'count': 430, 'stroke_count': 92, 'risk_pct': 21.4, 'color': '#ca8a04'},
-            {'range': '60 - 74 ปี', 'count': 385, 'stroke_count': 168, 'risk_pct': 43.6, 'color': '#ea580c'},
-            {'range': '75 ปีขึ้นไป', 'count': 156, 'stroke_count': 98, 'risk_pct': 62.8, 'color': '#dc2626'}
-        ]
-        
-        gender_stats = [
-            {'gender': 'เพศชาย (Male)', 'count': 680, 'pct': 54.1, 'risk_rate': 28.5, 'color': '#1877f2'},
-            {'gender': 'เพศหญิง (Female)', 'count': 576, 'pct': 45.9, 'risk_rate': 21.8, 'color': '#ec4899'}
-        ]
-        
         return JsonResponse({
             'success': True,
             'total_predictions': total_predictions,
@@ -420,11 +407,7 @@ def dashboard_stats(request):
                 'Ischemic': ischemic_cnt,
                 'Hemorrhagic': hemorrhagic_cnt
             },
-            'recent_predictions': recent_list[:5],
-            'risk_factors': {
-                'age_groups': age_groups,
-                'gender_stats': gender_stats
-            }
+            'recent_predictions': recent_list[:5]
         })
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)

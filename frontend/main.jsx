@@ -529,74 +529,16 @@ function DashboardView({ onNavigatePredict }) {
         </div>
       </div>
 
-      {/* Bottom Charts & Recent Activity Grid */}
-      <div className="grid-2" style={{ gap: 20, marginBottom: 24 }}>
-        {/* Left: ปัจจัยเสี่ยง: อายุ/เพศ */}
-        <div className="feature-card" style={{ padding: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
-            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Users size={18} color="#1877f2" /> ปัจจัยเสี่ยง: อายุ / เพศ
-            </h3>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', background: '#f1f5f9', padding: '3px 8px', borderRadius: 6 }}>
-              สถิติเชิงลึก
-            </span>
-          </div>
-
-          {/* 1. สัดส่วนเพศ */}
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: '#334155', marginBottom: 10, display: 'flex', justifyContent: 'space-between' }}>
-              <span>การกระจายตามเพศ (Gender Distribution)</span>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              {(stats?.risk_factors?.gender_stats || [
-                { gender: 'เพศชาย (Male)', count: 680, pct: 54.1, risk_rate: 28.5, color: '#1877f2' },
-                { gender: 'เพศหญิง (Female)', count: 576, pct: 45.9, risk_rate: 21.8, color: '#ec4899' }
-              ]).map((g, idx) => (
-                <div key={idx} style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: 10, border: '1px solid #e2e8f0' }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: g.color, marginBottom: 4 }}>{g.gender}</div>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: '#0f172a' }}>{g.pct}% <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>({formatNum(g.count)} คน)</span></div>
-                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>อัตราพบความเสี่ยง: <strong style={{ color: g.color }}>{g.risk_rate}%</strong></div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* 2. การกระจายตามกลุ่มอายุ */}
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: '#334155', marginBottom: 10 }}>
-              ความเสี่ยงจำแนกตามกลุ่มอายุ (Risk by Age Group)
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {(stats?.risk_factors?.age_groups || [
-                { range: 'น้อยกว่า 45 ปี', count: 285, risk_pct: 6.3, color: '#16a34a' },
-                { range: '45 - 59 ปี', count: 430, risk_pct: 21.4, color: '#ca8a04' },
-                { range: '60 - 74 ปี', count: 385, risk_pct: 43.6, color: '#ea580c' },
-                { range: '75 ปีขึ้นไป', count: 156, risk_pct: 62.8, color: '#dc2626' }
-              ]).map((age, idx) => (
-                <div key={idx} style={{ background: '#ffffff', padding: '10px 12px', borderRadius: 8, border: '1px solid #eef3f6' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, marginBottom: 6 }}>
-                    <span style={{ color: '#334155' }}>{age.range} ({age.count} คน)</span>
-                    <span style={{ color: age.color, fontWeight: 800 }}>พบความเสี่ยง {age.risk_pct}%</span>
-                  </div>
-                  <div style={{ height: 8, background: '#f1f5f9', borderRadius: 999, overflow: 'hidden' }}>
-                    <div style={{ width: `${age.risk_pct}%`, height: '100%', background: age.color, borderRadius: 999 }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* Recent Predictions Activity Section */}
+      <div className="feature-card" style={{ padding: 24, marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
+          <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Clock size={18} color="#1877f2" /> ประวัติการพยากรณ์ล่าสุด 5 รายการ
+          </h3>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', background: '#f1f5f9', padding: '3px 8px', borderRadius: 6 }}>
+            ล่าสุด
+          </span>
         </div>
-
-        {/* Right: ประวัติการพยากรณ์ล่าสุด 5 รายการ */}
-        <div className="feature-card" style={{ padding: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
-            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Clock size={18} color="#1877f2" /> ประวัติการพยากรณ์ล่าสุด 5 รายการ
-            </h3>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', background: '#f1f5f9', padding: '3px 8px', borderRadius: 6 }}>
-              ล่าสุด
-            </span>
-          </div>
 
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -665,7 +607,6 @@ function DashboardView({ onNavigatePredict }) {
             </table>
           </div>
         </div>
-      </div>
 
       {/* Patient Detail Modal */}
       {selectedPatient && (
