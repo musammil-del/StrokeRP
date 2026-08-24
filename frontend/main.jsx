@@ -293,7 +293,7 @@ function LoginPage({ onLogin }) {
           <div className="field" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>ชื่อผู้ใช้ (Username)</span>
             <input 
-              placeholder="musammil" 
+              placeholder="Username" 
               value={form.username} 
               onChange={e => set('username', e.target.value)} 
               required 
@@ -316,7 +316,7 @@ function LoginPage({ onLogin }) {
             <div style={{ position: 'relative' }}>
               <input 
                 type={showPwd ? 'text' : 'password'}
-                placeholder="••••••" 
+                placeholder="password" 
                 value={form.password} 
                 onChange={e => set('password', e.target.value)} 
                 required 
@@ -423,6 +423,7 @@ function Topbar({ session, currentTitle }) {
 function DashboardView({ onNavigatePredict }) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedPatient, setSelectedPatient] = useState(null);
 
   useEffect(() => {
     fetch(`${API}/api/dashboard-stats/`, { credentials: 'include' })
@@ -528,7 +529,281 @@ function DashboardView({ onNavigatePredict }) {
         </div>
       </div>
 
-      {/* Bottom Bar Chart Card matching screenshot */}
+      {/* Bottom Charts & Recent Activity Grid */}
+      <div className="grid-2" style={{ gap: 20, marginBottom: 24 }}>
+        {/* Left: ปัจจัยเสี่ยง: อายุ/เพศ */}
+        <div className="feature-card" style={{ padding: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Users size={18} color="#1877f2" /> ปัจจัยเสี่ยง: อายุ / เพศ
+            </h3>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', background: '#f1f5f9', padding: '3px 8px', borderRadius: 6 }}>
+              สถิติเชิงลึก
+            </span>
+          </div>
+
+          {/* 1. สัดส่วนเพศ */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#334155', marginBottom: 10, display: 'flex', justifyContent: 'space-between' }}>
+              <span>การกระจายตามเพศ (Gender Distribution)</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {(stats?.risk_factors?.gender_stats || [
+                { gender: 'เพศชาย (Male)', count: 680, pct: 54.1, risk_rate: 28.5, color: '#1877f2' },
+                { gender: 'เพศหญิง (Female)', count: 576, pct: 45.9, risk_rate: 21.8, color: '#ec4899' }
+              ]).map((g, idx) => (
+                <div key={idx} style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: g.color, marginBottom: 4 }}>{g.gender}</div>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: '#0f172a' }}>{g.pct}% <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>({formatNum(g.count)} คน)</span></div>
+                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>อัตราพบความเสี่ยง: <strong style={{ color: g.color }}>{g.risk_rate}%</strong></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 2. การกระจายตามกลุ่มอายุ */}
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#334155', marginBottom: 10 }}>
+              ความเสี่ยงจำแนกตามกลุ่มอายุ (Risk by Age Group)
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {(stats?.risk_factors?.age_groups || [
+                { range: 'น้อยกว่า 45 ปี', count: 285, risk_pct: 6.3, color: '#16a34a' },
+                { range: '45 - 59 ปี', count: 430, risk_pct: 21.4, color: '#ca8a04' },
+                { range: '60 - 74 ปี', count: 385, risk_pct: 43.6, color: '#ea580c' },
+                { range: '75 ปีขึ้นไป', count: 156, risk_pct: 62.8, color: '#dc2626' }
+              ]).map((age, idx) => (
+                <div key={idx} style={{ background: '#ffffff', padding: '10px 12px', borderRadius: 8, border: '1px solid #eef3f6' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, marginBottom: 6 }}>
+                    <span style={{ color: '#334155' }}>{age.range} ({age.count} คน)</span>
+                    <span style={{ color: age.color, fontWeight: 800 }}>พบความเสี่ยง {age.risk_pct}%</span>
+                  </div>
+                  <div style={{ height: 8, background: '#f1f5f9', borderRadius: 999, overflow: 'hidden' }}>
+                    <div style={{ width: `${age.risk_pct}%`, height: '100%', background: age.color, borderRadius: 999 }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right: ประวัติการพยากรณ์ล่าสุด 5 รายการ */}
+        <div className="feature-card" style={{ padding: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Clock size={18} color="#1877f2" /> ประวัติการพยากรณ์ล่าสุด 5 รายการ
+            </h3>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', background: '#f1f5f9', padding: '3px 8px', borderRadius: 6 }}>
+              ล่าสุด
+            </span>
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
+                  <th style={{ padding: '10px 12px', fontWeight: 800, color: '#475569' }}>วันที่/เวลา</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 800, color: '#475569' }}>รหัสผู้ป่วย</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 800, color: '#475569', textAlign: 'center' }}>ผลลัพธ์</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 800, color: '#475569', textAlign: 'center' }}>จัดการ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(stats?.recent_predictions || [
+                  { id: 1, date_short: '24 ส.ค.', time_str: '14:20 น.', patient_id: 'HN-001', result_label: 'ปกติ', is_high_risk: false, gender: 'หญิง', age: 45, systolic_bp: 120, diastolic_bp: 80, blood_sugar: 95, cholesterol: 175, bmi: 21.5, confidence: 92.4, has_diabetes: false, has_hypertension: false, has_dyslipidemia: false, ekg_result: false, symptoms: [], stroke_type_full: 'ปกติ (No Stroke)' },
+                  { id: 2, date_short: '24 ส.ค.', time_str: '11:05 น.', patient_id: 'HN-002', result_label: 'เสี่ยงสูง', is_high_risk: true, gender: 'ชาย', age: 68, systolic_bp: 165, diastolic_bp: 98, blood_sugar: 180, cholesterol: 240, bmi: 28.4, confidence: 88.6, has_diabetes: true, has_hypertension: true, has_dyslipidemia: true, ekg_result: true, symptoms: ['แขนขาอ่อนแรง', 'พูดไม่ชัด'], stroke_type_full: 'โรคหลอดเลือดสมองตีบ (Ischemic Stroke)' },
+                  { id: 3, date_short: '23 ส.ค.', time_str: '16:45 น.', patient_id: 'HN-003', result_label: 'ปกติ', is_high_risk: false, gender: 'หญิง', age: 52, systolic_bp: 128, diastolic_bp: 82, blood_sugar: 105, cholesterol: 190, bmi: 23.1, confidence: 90.1, has_diabetes: false, has_hypertension: false, has_dyslipidemia: false, ekg_result: false, symptoms: [], stroke_type_full: 'ปกติ (No Stroke)' },
+                  { id: 4, date_short: '23 ส.ค.', time_str: '09:15 น.', patient_id: 'HN-004', result_label: 'เสี่ยงสูง', is_high_risk: true, gender: 'ชาย', age: 72, systolic_bp: 185, diastolic_bp: 110, blood_sugar: 145, cholesterol: 220, bmi: 26.8, confidence: 84.5, has_diabetes: false, has_hypertension: true, has_dyslipidemia: false, ekg_result: false, symptoms: ['ปวดศีรษะเฉียบพลัน', 'วิงเวียน/เสียการทรงตัว'], stroke_type_full: 'โรคหลอดเลือดสมองแตก (Hemorrhagic Stroke)' },
+                  { id: 5, date_short: '22 ส.ค.', time_str: '13:30 น.', patient_id: 'HN-005', result_label: 'ปกติ', is_high_risk: false, gender: 'ชาย', age: 38, systolic_bp: 118, diastolic_bp: 78, blood_sugar: 90, cholesterol: 160, bmi: 22.0, confidence: 96.0, has_diabetes: false, has_hypertension: false, has_dyslipidemia: false, ekg_result: false, symptoms: [], stroke_type_full: 'ปกติ (No Stroke)' },
+                ]).slice(0, 5).map((row, idx) => (
+                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 0 ? '#ffffff' : '#fafafa' }}>
+                    <td style={{ padding: '10px 12px', color: '#475569', fontSize: 12 }}>
+                      <div style={{ fontWeight: 700, color: '#1e293b' }}>{row.date_short}</div>
+                      <div style={{ fontSize: 11, color: '#94a3b8' }}>{row.time_str}</div>
+                    </td>
+                    <td style={{ padding: '10px 12px', fontWeight: 800, color: '#1877f2' }}>
+                      {row.patient_id}
+                    </td>
+                    <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '3px 10px',
+                        borderRadius: 6,
+                        fontWeight: 800,
+                        fontSize: 12,
+                        background: row.is_high_risk ? '#fef2f2' : '#f0fdf4',
+                        color: row.is_high_risk ? '#dc2626' : '#16a34a',
+                        border: `1px solid ${row.is_high_risk ? '#fecaca' : '#bbf7d0'}`
+                      }}>
+                        {row.result_label}
+                      </span>
+                    </td>
+                    <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                      <button
+                        onClick={() => setSelectedPatient(row)}
+                        style={{
+                          background: '#eff6ff',
+                          color: '#2563eb',
+                          border: '1px solid #bfdbfe',
+                          borderRadius: 6,
+                          padding: '4px 10px',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <Eye size={12} /> ดูรายละเอียด
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Patient Detail Modal */}
+      {selectedPatient && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: 16
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: 16,
+            width: '100%',
+            maxWidth: 620,
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            padding: '24px 28px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
+            position: 'relative'
+          }}>
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, paddingBottom: 12, borderBottom: '2px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: '#eff6ff', display: 'grid', placeItems: 'center' }}>
+                  <UserRound size={20} color="#2563eb" />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', margin: 0 }}>
+                    รายละเอียดผลการพยากรณ์: {selectedPatient.patient_id}
+                  </h3>
+                  <div style={{ fontSize: 12, color: '#64748b' }}>
+                    บันทึกเมื่อ {selectedPatient.datetime_full || `${selectedPatient.date_short} ${selectedPatient.time_str}`}
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedPatient(null)}
+                style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'grid', placeItems: 'center', cursor: 'pointer', color: '#64748b' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Prediction Result Badge */}
+            <div style={{
+              background: selectedPatient.is_high_risk ? '#fef2f2' : '#f0fdf4',
+              border: `1.5px solid ${selectedPatient.is_high_risk ? '#fecaca' : '#bbf7d0'}`,
+              borderRadius: 12,
+              padding: '14px 18px',
+              marginBottom: 18,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {selectedPatient.is_high_risk ? <AlertTriangle size={22} color="#dc2626" /> : <CheckCircle2 size={22} color="#16a34a" />}
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b' }}>ผลการวินิจฉัยจาก AI</div>
+                  <div style={{ fontSize: 15, fontWeight: 900, color: selectedPatient.is_high_risk ? '#dc2626' : '#16a34a' }}>
+                    {selectedPatient.stroke_type_full}
+                  </div>
+                </div>
+              </div>
+              {selectedPatient.confidence && (
+                <span style={{ fontSize: 13, fontWeight: 800, background: '#ffffff', padding: '4px 10px', borderRadius: 8, border: `1px solid ${selectedPatient.is_high_risk ? '#fecaca' : '#bbf7d0'}`, color: selectedPatient.is_high_risk ? '#dc2626' : '#16a34a' }}>
+                  ความมั่นใจ {selectedPatient.confidence}%
+                </span>
+              )}
+            </div>
+
+            {/* Health Info Grid */}
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#134e5e', marginBottom: 8 }}>ข้อมูลสุขภาพของผู้ป่วย:</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8 }}>
+                {[
+                  ['เพศ / อายุ', `${selectedPatient.gender} / ${selectedPatient.age} ปี`],
+                  ['BMI', selectedPatient.bmi || '-'],
+                  ['ความดันโลหิต', `${selectedPatient.systolic_bp}/${selectedPatient.diastolic_bp} mmHg`],
+                  ['น้ำตาลในเลือด', `${selectedPatient.blood_sugar} mg/dL`],
+                  ['ไขมัน Cholesterol', `${selectedPatient.cholesterol} mg/dL`],
+                  ['EKG', selectedPatient.ekg_result ? 'ผิดปกติ' : 'ปกติ'],
+                  ['เบาหวาน', selectedPatient.has_diabetes ? 'มี' : 'ไม่มี'],
+                  ['ความดัน (ประวัติ)', selectedPatient.has_hypertension ? 'มี' : 'ไม่มี'],
+                  ['ไขมันในเลือดสูง', selectedPatient.has_dyslipidemia ? 'มี' : 'ไม่มี'],
+                ].map(([k, v], i) => (
+                  <div key={i} style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12 }}>
+                    <div style={{ color: '#64748b', fontWeight: 600 }}>{k}</div>
+                    <div style={{ fontWeight: 800, color: '#0f172a', marginTop: 2 }}>{v}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Symptoms list */}
+            {selectedPatient.symptoms && selectedPatient.symptoms.length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: '#134e5e', marginBottom: 8 }}>อาการที่พบ:</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {selectedPatient.symptoms.map((s, idx) => (
+                    <span key={idx} style={{ background: '#fee2e2', color: '#991b1b', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, border: '1px solid #fecaca' }}>
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Modal Footer */}
+            <div style={{ textAlign: 'right' }}>
+              <button
+                onClick={() => setSelectedPatient(null)}
+                style={{
+                  background: '#1877f2',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '9px 24px',
+                  fontSize: 13,
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                ปิดหน้าต่าง
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bar Chart Card */}
       <div className="feature-card" style={{ padding: 24 }}>
         <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', marginBottom: 20 }}>
           จำนวนผู้ป่วยแยกตามประเภทโรค
@@ -539,177 +814,535 @@ function DashboardView({ onNavigatePredict }) {
   );
 }
 
-/* ===================== STROKE INFO VIEW ===================== */
+/* ===================== STROKE INFO VIEW (เกี่ยวกับโรคหลอดเลือดสมอง) ===================== */
 function DiseaseInfoView() {
+  const [activeSubTab, setActiveSubTab] = useState('overview');
+
+  const subTabs = [
+    { id: 'overview', label: '1. โรคหลอดเลือดสมอง', icon: Brain },
+    { id: 'symptoms', label: '2. อาการเตือน (BEFAST)', icon: AlertTriangle },
+    { id: 'prevention', label: '3. เคล็ดลับการป้องกัน', icon: ShieldCheck },
+    { id: 'treatment', label: '4. แนวทางการรักษา (Treatment)', icon: HeartPulse },
+  ];
+
   return (
     <div>
-      <div className="hero-band" style={{ marginBottom: 24 }}>
+      {/* Header Band */}
+      <div className="hero-band" style={{ marginBottom: 20 }}>
         <div>
           <span className="eyebrow">MEDICAL KNOWLEDGE</span>
-          <h2>เกี่ยวกับโรคหลอดเลือดสมอง</h2>
-          <p>ข้อมูลสำคัญเกี่ยวกับโรคหลอดเลือดสมองที่ควรรู้เพื่อการป้องกันและการปฐมพยาบาล</p>
+          <h2>เกี่ยวกับโรคหลอดเลือดสมอง (Stroke)</h2>
+          <p style={{ fontWeight: 700, fontSize: 16, color: '#1877f2', marginBottom: 4 }}>คู่มือความรู้และการดูแลรักษาทางการแพทย์</p>
+          <p style={{ maxWidth: 820, lineHeight: 1.6 }}>
+            รวบรวมข้อมูลสำคัญเกี่ยวกับโรคหลอดเลือดสมอง ชนิดของโรค อาการเตือน BEFAST เคล็ดลับการป้องกัน และแนวทางการรักษาแบบครบวงจร
+          </p>
         </div>
         <div className="hero-illustration">
           <Brain size={60} />
         </div>
       </div>
 
-      <div className="grid-2" style={{ marginBottom: 20 }}>
-        <div className="feature-card">
-          <h3 style={{ fontSize: 15, color: '#134e5e', fontWeight: 800, marginBottom: 12, paddingBottom: 8, borderBottom: '2px solid #d1e0e8' }}>ประเภทโรค</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {[
-              { name: 'No Stroke', desc: 'ปกติ ไม่มีภาวะโรคหลอดเลือดสมอง', color: '#27ae60' },
-              { name: 'Ischemic Stroke', desc: 'โรคหลอดเลือดสมองตีบ/อุดตัน (พบบ่อยที่สุด ~85%)', color: '#ff9800' },
-              { name: 'Hemorrhagic Stroke', desc: 'โรคหลอดเลือดสมองแตก (รุนแรง มีอัตราเสียชีวิตสูง)', color: '#e74c3c' },
-            ].map((t, i) => (
-              <div key={i} style={{ padding: '10px 14px', borderRadius: 8, background: '#f8fafc', borderLeft: `4px solid ${t.color}` }}>
-                <div style={{ fontWeight: 800, color: t.color, fontSize: 13, marginBottom: 3 }}>{t.name}</div>
-                <div style={{ fontSize: 12, color: '#445a65' }}>{t.desc}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="feature-card">
-          <h3 style={{ fontSize: 15, color: '#134e5e', fontWeight: 800, marginBottom: 12, paddingBottom: 8, borderBottom: '2px solid #d1e0e8' }}>สัญญาณเตือน F.A.S.T.</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            {[
-              { letter: 'F', word: 'Face', desc: 'ใบหน้าเบี้ยว หรือชา', color: '#00a89e', bg: '#e6f7f6' },
-              { letter: 'A', word: 'Arms', desc: 'แขนหรือขาอ่อนแรงข้างเดียว', color: '#0077b6', bg: '#e6f2fa' },
-              { letter: 'S', word: 'Speech', desc: 'พูดไม่ชัด ฟังไม่เข้าใจ', color: '#f7941d', bg: '#fff5e6' },
-              { letter: 'T', word: 'Time', desc: 'รีบโทร 1669 ทันที!', color: '#e52d27', bg: '#fde8e8' },
-            ].map((f, i) => (
-              <div key={i} style={{ background: f.bg, borderRadius: 8, padding: '10px 12px', display: 'flex', gap: 10, alignItems: 'center', border: `1px solid ${f.color}33` }}>
-                <div style={{ width: 36, height: 36, borderRadius: 8, background: f.color, color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 900, fontSize: 18, flexShrink: 0 }}>{f.letter}</div>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: 13, color: f.color }}>{f.word}</div>
-                  <div style={{ fontSize: 11, color: '#445a65' }}>{f.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* Sub Navigation Bar */}
+      <div style={{
+        display: 'flex',
+        gap: 8,
+        flexWrap: 'wrap',
+        marginBottom: 24,
+        background: '#ffffff',
+        padding: '10px 14px',
+        borderRadius: 14,
+        boxShadow: '0 4px 14px rgba(0,0,0,0.04)',
+        border: '1px solid #e2e8f0'
+      }}>
+        {subTabs.map(t => {
+          const active = activeSubTab === t.id;
+          const Icon = t.icon;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setActiveSubTab(t.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 18px',
+                borderRadius: 10,
+                border: 'none',
+                background: active ? '#1877f2' : 'transparent',
+                color: active ? '#ffffff' : '#475569',
+                fontWeight: active ? 800 : 600,
+                fontSize: 13,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                fontFamily: 'inherit'
+              }}
+            >
+              <Icon size={16} color={active ? '#ffffff' : '#64748b'} />
+              <span>{t.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      <div className="grid-3">
-        {[
-          { title: 'อาการหลัก', icon: AlertTriangle, color: '#e74c3c', items: ['ชาหรืออ่อนแรงครึ่งซีก', 'พูดหรือฟังไม่รู้เรื่อง', 'ตามัวหรือมองไม่เห็น', 'ปวดศีรษะรุนแรงเฉียบพลัน', 'วิงเวียนหรือเสียการทรงตัว'] },
-          { title: 'ปัจจัยเสี่ยง', icon: ShieldCheck, color: '#f39c12', items: ['ความดันโลหิตสูง', 'เบาหวาน', 'ไขมันในเลือดสูง', 'โรคหัวใจ (EKG ผิดปกติ)', 'BMI เกินมาตรฐาน', 'สูบบุหรี่'] },
-          { title: 'การป้องกัน', icon: CheckCircle2, color: '#27ae60', items: ['ควบคุมความดันโลหิต', 'รับประทานอาหารลดเค็ม', 'ออกกำลังกายสม่ำเสมอ', 'ควบคุมน้ำตาลในเลือด', 'ตรวจสุขภาพประจำปี', 'งดสูบบุหรี่และแอลกอฮอล์'] },
-        ].map((sec, i) => (
-          <div key={i} className="feature-card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: sec.color + '22', display: 'grid', placeItems: 'center' }}>
-                <sec.icon size={18} color={sec.color} />
+      {/* CONTENT: หน้าที่ 1 (โรคหลอดเลือดสมอง) */}
+      {activeSubTab === 'overview' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Main Definition Card */}
+          <div className="feature-card" style={{ padding: '28px 34px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#eff6ff', display: 'grid', placeItems: 'center' }}>
+                <Brain size={26} color="#2563eb" />
               </div>
-              <h3 style={{ fontSize: 14, fontWeight: 800, color: '#134e5e' }}>{sec.title}</h3>
+              <div>
+                <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', margin: 0 }}>
+                  โรคหลอดเลือดสมอง หรือ Stroke คืออะไร?
+                </h3>
+                <div style={{ fontSize: 13, color: '#64748b' }}>ภาวะฉุกเฉินทางการแพทย์ที่ต้องได้รับการรักษาอย่างเร่งด่วน</div>
+              </div>
             </div>
-            <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {sec.items.map((item, j) => <li key={j} style={{ fontSize: 13, color: '#445a65', lineHeight: 1.6 }}>{item}</li>)}
-            </ul>
+
+            <div style={{ background: '#f8fafc', padding: '18px 22px', borderRadius: 12, border: '1px solid #e2e8f0', marginBottom: 20, lineHeight: 1.8, fontSize: 14, color: '#334155' }}>
+              <strong>โรคหลอดเลือดสมอง หรือ Stroke</strong> คือ ภาวะสมองขาดเลือดที่เกิดจากหลอดเลือดสมองตีบ/อุดตันหรือมีเลือดออกในสมอง หรืออาการเส้นเลือดในสมองตีบ ทำให้เลือดไม่สามารถไปเลี้ยงสมองได้ ทำให้เซลล์สมองขาดออกซิเจน ส่งผลให้สมองตาย ผู้ป่วยจำเป็นต้องพบแพทย์ทันที การรักษาอย่างรีบด่วนเป็นสิ่งสำคัญมาก เพราะช่วยลดความรุนแรงจากภาวะสมองตาย และรวมถึงลดภาวะแทรกซ้อนอื่นๆ และยังป้องกันความพิการและทุพพลภาพที่จะเกิดขึ้น
+            </div>
+
+            <h4 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 14, paddingBottom: 8, borderBottom: '2px solid #d1e0e8' }}>
+              โรคหลอดเลือดสมอง แบ่งได้เป็น 2 ชนิด คือ
+            </h4>
+
+            <div className="grid-2" style={{ gap: 16 }}>
+              {/* Type 1: ตีบ/อุดตัน */}
+              <div style={{ background: '#ffffff', borderRadius: 14, padding: 22, border: '1.5px solid #fed7aa', boxShadow: '0 4px 12px rgba(234, 88, 12, 0.06)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, background: '#fff7ed', color: '#ea580c', padding: '4px 10px', borderRadius: 6, border: '1px solid #fed7aa' }}>
+                    พบมากที่สุด ~80-90%
+                  </span>
+                  <Activity size={20} color="#ea580c" />
+                </div>
+                <h5 style={{ fontSize: 16, fontWeight: 900, color: '#9a3412', margin: '0 0 10px' }}>
+                  1. โรคหลอดเลือดสมองตีบหรืออุดตันเฉียบพลัน (Ischemic Stroke)
+                </h5>
+                <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.7, margin: 0 }}>
+                  พบประมาณ 80-90% ของผู้ป่วยอัมพฤกษ์อัมพาต เกิดจากความผิดปกติของหลอดเลือดแดงที่ไปเลี้ยงสมองตีบหรืออุดตัน ซึ่งเป็นผลจากการที่ผู้ป่วยมีปัจจัยเสี่ยงต่างๆ เช่น <strong>โรคความดันโลหิตสูง, โรคเบาหวาน, การบริโภคอาหารที่มีไขมันสูง, การสูบบุหรี่, การขาดการออกกำลังกายอย่างสม่ำเสมอ</strong> ผู้ป่วยที่มีปัจจัยเสี่ยงดังกล่าวอยู่เป็นเวลานานจะเป็นผลให้ผนังหลอดเลือดหนาและแข็งตัว เกิดการตีบหรืออุดตัน ทำให้สมองขาดเลือดเกิดอัมพาตตามมาในที่สุด โดยผู้ป่วยเหล่านี้อาจมีโรคหลอดเลือดหัวใจหรือหลอดเลือดส่วนปลายแขนขาตีบร่วมด้วย นอกจากนี้ ยังอาจพบสาเหตุของการเกิดเส้นเลือดสมองอุดตันได้จากเหตุอื่นๆอีก เช่น <strong>ภาวะหัวใจเต้นผิดจังหวะบางชนิด, โรคเลือดบางชนิด เช่น ภาวะเลือดข้นผิดปกติ</strong>
+                </p>
+              </div>
+
+              {/* Type 2: แตก */}
+              <div style={{ background: '#ffffff', borderRadius: 14, padding: 22, border: '1.5px solid #fecaca', boxShadow: '0 4px 12px rgba(220, 38, 38, 0.06)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, background: '#fef2f2', color: '#dc2626', padding: '4px 10px', borderRadius: 6, border: '1px solid #fecaca' }}>
+                    ความรุนแรงสูง / อัตราเสียชีวิตสูง
+                  </span>
+                  <AlertTriangle size={20} color="#dc2626" />
+                </div>
+                <h5 style={{ fontSize: 16, fontWeight: 900, color: '#991b1b', margin: '0 0 10px' }}>
+                  2. โรคหลอดเลือดสมองแตก (Hemorrhagic Stroke)
+                </h5>
+                <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.7, margin: 0 }}>
+                  ภาวะนี้มักสัมพันธ์กับ <strong>โรคความดันโลหิตสูง</strong> ที่ไม่ได้รับการรักษาอยู่เป็นเวลานาน นอกจากนี้ยังอาจสัมพันธ์กับปัจจัยอื่นๆ เช่น <strong>การดื่มแอลกอฮอล์ รวมทั้งยาบางชนิด</strong> โดยการแตกของหลอดเลือดจะทำให้เกิดก้อนเลือดไปกดทับเนื้อสมอง ส่งผลให้เนื้อสมองตายและทำงานผิดปกติเฉียบพลัน
+                </p>
+              </div>
+            </div>
           </div>
-        ))}
-      </div>
-
-      {/* Clinical Risk Assessment Criteria Table */}
-      <div className="feature-card" style={{ marginTop: 24, padding: '24px 32px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
-          <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', margin: 0 }}>
-            เกณฑ์ระดับความเสี่ยงและคำแนะนำทางการแพทย์ (Clinical Interpretation)
-          </h3>
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#64748b', background: '#f1f5f9', padding: '4px 10px', borderRadius: 6 }}>
-            มาตรฐานการประเมิน
-          </span>
         </div>
+      )}
 
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead>
-              <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
-                <th style={{ padding: '12px 14px', fontWeight: 800, color: '#334155' }}>ระดับความเสี่ยง (Risk Category)</th>
-                <th style={{ padding: '12px 14px', fontWeight: 800, color: '#334155' }}>เปอร์เซ็นต์ความเสี่ยง</th>
-                <th style={{ padding: '12px 14px', fontWeight: 800, color: '#334155' }}>คำแนะนำทางการแพทย์ (Clinical Interpretation)</th>
-                <th style={{ padding: '12px 14px', fontWeight: 800, color: '#334155', textAlign: 'center' }}>การแสดงผลสี</th>
-              </tr>
-            </thead>
-            <tbody>
+      {/* CONTENT: หน้าที่ 2 (อาการของโรคหลอดเลือดสมอง B.E.F.A.S.T.) */}
+      {activeSubTab === 'symptoms' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div className="feature-card" style={{ padding: '28px 34px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#fef3c7', display: 'grid', placeItems: 'center' }}>
+                <AlertTriangle size={26} color="#d97706" />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', margin: 0 }}>
+                  อาการของโรคหลอดเลือดสมอง (สัญญาณเตือนภัย B.E.F.A.S.T.)
+                </h3>
+                <div style={{ fontSize: 13, color: '#64748b' }}>มักเกิดขึ้นเฉียบพลัน อาการแสดงขึ้นกับบริเวณที่สมองได้รับความเสียหาย</div>
+              </div>
+            </div>
+
+            <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.7, marginBottom: 20 }}>
+              อาการของโรคหลอดเลือดสมองมักเกิดขึ้นอย่างเฉียบพลัน ซึ่งสามารถสังเกตอาการเตือนและจดจำได้ง่ายตามหลักการ <strong>B.E.F.A.S.T.</strong> ดังนี้:
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14, marginBottom: 22 }}>
               {[
-                {
-                  name: 'ความเสี่ยงต่ำ (Low Risk)',
-                  range: 'น้อยกว่า 5%',
-                  advice: 'เน้นการดูแลสุขภาพพื้นฐาน ป้องกันไม่ให้เกิดปัจจัยเสี่ยง',
-                  colorName: 'สีเขียว',
-                  color: '#16a34a',
-                  bg: '#f0fdf4',
-                  border: '#bbf7d0',
-                },
-                {
-                  name: 'ความเสี่ยงคาบเกี่ยว (Borderline)',
-                  range: '5% - 7.4%',
-                  advice: 'เริ่มมีความเสี่ยง ควรเริ่มปรับเปลี่ยนพฤติกรรมการใช้ชีวิต',
-                  colorName: 'สีเหลืองอ่อน',
-                  color: '#ca8a04',
-                  bg: '#fefce8',
-                  border: '#fef08a',
-                },
-                {
-                  name: 'ความเสี่ยงปานกลาง (Intermediate)',
-                  range: '7.5% - 19.9%',
-                  advice: 'ควรพบแพทย์เพื่อพิจารณาควบคุมความดันและปัจจัยเสี่ยงอื่นๆ',
-                  colorName: 'สีเหลือง / ส้ม',
-                  color: '#ea580c',
-                  bg: '#fff7ed',
-                  border: '#fed7aa',
-                },
-                {
-                  name: 'ความเสี่ยงสูง (High Risk)',
-                  range: '20% ขึ้นไป',
-                  advice: 'มีความเสี่ยงอันตราย ต้องอยู่ในการดูแลของแพทย์และพิจารณาให้ยา',
-                  colorName: 'สีแดง',
-                  color: '#dc2626',
-                  bg: '#fef2f2',
-                  border: '#fecaca',
-                }
-              ].map((tier, idx) => (
-                <tr 
+                { letter: 'B', word: 'Balance (การทรงตัว)', desc: 'การทรงตัวของร่างกายผิดปกติ ไม่สามารถทรงตัวได้ เดินเซ วิงเวียนศีรษะเฉียบพลัน', color: '#0284c7', bg: '#f0f9ff' },
+                { letter: 'E', word: 'Eye (การมองเห็น)', desc: 'ตามัวหรือมองไม่เห็นอย่างเฉียบพลัน ลานสายตาผิดปกติ มองเห็นภาพซ้อน', color: '#0369a1', bg: '#e0f2fe' },
+                { letter: 'F', word: 'Face (ใบหน้า)', desc: 'เกิดภาวะหน้าเบี้ยว ปากเบี้ยว มุมปากตก ยิ้มแล้วมุมปากไม่เท่ากัน ชาครึ่งหน้า', color: '#0d9488', bg: '#f0fdfa' },
+                { letter: 'A', word: 'Arm (แขนขาอ่อนแรง)', desc: 'แขนขาอ่อนแรงครึ่งซีก ไม่มีแรงหรือชาอย่างเฉียบพลันที่แขนหรือขาซีกใดซีกหนึ่งของร่างกาย ยกแขนไม่ขึ้น', color: '#ea580c', bg: '#fff7ed' },
+                { letter: 'S', word: 'Speech (การพูด)', desc: 'การพูด การสื่อสารผิดปกติเฉียบพลัน เช่น การพูดไม่รู้เรื่อง พูดไม่ชัด ลิ้นแข็ง ฟังไม่เข้าใจ', color: '#7c3aed', bg: '#faf5ff' },
+                { letter: 'T', word: 'Time (เวลาเร่งด่วน)', desc: 'เวลาที่เริ่มมีอาการผิดปกติ เมื่อสงสัยภาวะโรคหลอดเลือดสมองเฉียบพลัน ให้รีบพาผู้ป่วยไปโรงพยาบาลให้เร็วที่สุด หรือโทร. 1669 ทันที!', color: '#dc2626', bg: '#fef2f2' },
+              ].map((item, idx) => (
+                <div 
                   key={idx} 
-                  style={{ 
-                    background: '#ffffff',
-                    borderBottom: '1px solid #eef3f6',
-                    borderLeft: `5px solid ${tier.color}`,
-                    transition: 'background 0.2s ease'
+                  style={{
+                    background: item.bg,
+                    border: `1.5px solid ${item.color}44`,
+                    borderRadius: 12,
+                    padding: '16px 18px',
+                    display: 'flex',
+                    gap: 14,
+                    alignItems: 'flex-start'
                   }}
                 >
-                  <td style={{ padding: '12px 14px', fontWeight: 700, color: tier.color }}>
-                    {tier.name}
-                  </td>
-                  <td style={{ padding: '12px 14px', fontWeight: 600, color: '#475569' }}>
-                    {tier.range}
-                  </td>
-                  <td style={{ padding: '12px 14px', color: '#334155', lineHeight: 1.5, fontWeight: 500 }}>
-                    {tier.advice}
-                  </td>
-                  <td style={{ padding: '12px 14px', textAlign: 'center' }}>
-                    <span style={{ 
-                      display: 'inline-block',
-                      padding: '4px 10px', 
-                      borderRadius: 6, 
-                      background: tier.bg, 
-                      color: tier.color, 
-                      fontWeight: 800, 
-                      fontSize: 12,
-                      border: `1px solid ${tier.border}`
-                    }}>
-                      {tier.colorName}
-                    </span>
-                  </td>
-                </tr>
+                  <div style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 10,
+                    background: item.color,
+                    color: '#ffffff',
+                    display: 'grid',
+                    placeItems: 'center',
+                    fontWeight: 900,
+                    fontSize: 22,
+                    flexShrink: 0
+                  }}>
+                    {item.letter}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: 15, color: item.color, marginBottom: 4 }}>
+                      {item.word}
+                    </div>
+                    <div style={{ fontSize: 13, color: '#334155', lineHeight: 1.5 }}>
+                      {item.desc}
+                    </div>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Crucial Notice Banner */}
+            <div style={{ background: '#fef2f2', border: '1.5px solid #fecaca', borderRadius: 12, padding: '16px 20px', display: 'flex', gap: 12, alignItems: 'center' }}>
+              <Bell size={24} color="#dc2626" style={{ flexShrink: 0 }} />
+              <div style={{ fontSize: 13, color: '#991b1b', lineHeight: 1.6 }}>
+                <strong>ข้อควรระวังสำคัญ:</strong> แม้ว่าอาการเหล่านั้นจะเกิดขึ้นชั่วขณะแล้วดีขึ้นเอง (TIA - ภาวะสมองขาดเลือดชั่วคราว) ก็ต้องรีบไปพบแพทย์ทันที เพื่อให้แพทย์ได้ประเมินอาการและให้การรักษาอย่างทันท่วงที จะช่วยลดความเสี่ยงต่อความรุนแรงของภาวะทุพพลภาพและป้องกันอัมพาตถาวรได้มากที่สุด
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* CONTENT: หน้าที่ 3 (เคล็ดลับป้องกันโรคหลอดเลือดสมอง) */}
+      {activeSubTab === 'prevention' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div className="feature-card" style={{ padding: '28px 34px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#f0fdf4', display: 'grid', placeItems: 'center' }}>
+                <ShieldCheck size={26} color="#16a34a" />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', margin: 0 }}>
+                  เคล็ดลับป้องกันโรคหลอดเลือดสมอง (Prevention)
+                </h3>
+                <div style={{ fontSize: 13, color: '#16a34a', fontWeight: 700 }}>
+                  90% ของโรคหลอดเลือดสมอง สามารถป้องกันได้ด้วยการปรับเปลี่ยนพฤติกรรม
+                </div>
+              </div>
+            </div>
+
+            <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.7, marginBottom: 20 }}>
+              ร้อยละ 90 ของโรคหลอดเลือดสมองสามารถป้องกันได้โดยการปรับเปลี่ยนพฤติกรรมการใช้ชีวิต เช่น รับประทานอาหารที่ดีต่อสุขภาพ ออกกำลังกาย ผ่อนคลายความเครียด และควบคุมปัจจัยเสี่ยงต่าง ๆ อย่างเคร่งครัด
+            </p>
+
+            <div className="grid-2" style={{ gap: 16, marginBottom: 24 }}>
+              {/* 1. โภชนาการ */}
+              <div style={{ background: '#ffffff', padding: 20, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                <h4 style={{ fontSize: 15, fontWeight: 800, color: '#15803d', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  🥗 รับประทานอาหารที่ดีต่อสุขภาพ
+                </h4>
+                <ul style={{ paddingLeft: 18, fontSize: 13, color: '#475569', lineHeight: 1.7, margin: 0 }}>
+                  <li>เน้นอาหารที่มีเส้นใยสูง และไขมันต่ำ</li>
+                  <li>ลดหวาน มัน เค็ม: โซเดียมไม่เกิน 2,000 มก./วัน</li>
+                  <li>น้ำตาลไม่เกิน 6 ช้อนชาต่อวัน, น้ำมันไม่เกิน 6 ช้อนชาต่อวัน</li>
+                  <li>ใช้น้ำมันไม่อิ่มตัว เช่น น้ำมันมะกอก น้ำมันคาโนล่า น้ำมันรำข้าว ถั่วเมล็ดแห้ง และปลาทะเล</li>
+                </ul>
+              </div>
+
+              {/* 2. ออกกำลังกาย & งดบุหรี่/แอลกอฮอล์ */}
+              <div style={{ background: '#ffffff', padding: 20, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                <h4 style={{ fontSize: 15, fontWeight: 800, color: '#0369a1', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  🏃‍♂️ ออกกำลังกายและปรับพฤติกรรม
+                </h4>
+                <ul style={{ paddingLeft: 18, fontSize: 13, color: '#475569', lineHeight: 1.7, margin: 0 }}>
+                  <li>ออกกำลังกายอย่างน้อยวันละ 30 นาที สม่ำเสมอ</li>
+                  <li>ผ่อนคลายความเครียด และนอนหลับพักผ่อนให้เพียงพอ</li>
+                  <li>งดเครื่องดื่มแอลกอฮอล์</li>
+                  <li><strong>งดสูบบุหรี่เด็ดขาด</strong> (ผู้สูบบุหรี่มีความเสี่ยงสูงกว่าปกติถึง 2 เท่า)</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* 3. เป้าหมายการควบคุมปัจจัยเสี่ยง */}
+            <h4 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 14, paddingBottom: 8, borderBottom: '2px solid #d1e0e8' }}>
+              เป้าหมายการควบคุมปัจจัยเสี่ยงทางการแพทย์
+            </h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 24 }}>
+              {[
+                { title: 'ดัชนีมวลกาย (BMI)', target: '< 25 kg/m²', note: 'ควบคุมน้ำหนักตัวให้อยู่ในเกณฑ์มาตรฐาน', color: '#16a34a' },
+                { title: 'ความดันโลหิต', target: '≤ 130/80 mmHg', note: 'ตรวจวัดความดันสม่ำเสมอ', color: '#0284c7' },
+                { title: 'น้ำตาลในเลือด', target: '≤ 140 mg/dL', note: 'HbA1C < 6.5% ในผู้ป่วยเบาหวาน', color: '#d97706' },
+                { title: 'คอเลสเตอรอลรวม', target: '< 200 mg/dL', note: 'ควบคุมไขมันในกระแสเลือด', color: '#ea580c' },
+                { title: 'ตรวจ EKG (> 50 ปี)', target: 'จังหวะหัวใจปกติ', note: 'คัดกรองภาวะหัวใจเต้นพริ้ว (AF)', color: '#7c3aed' },
+              ].map((m, idx) => (
+                <div key={idx} style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: 12, border: '1.5px solid #e2e8f0' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#64748b', marginBottom: 4 }}>{m.title}</div>
+                  <div style={{ fontSize: 17, fontWeight: 900, color: m.color, marginBottom: 4 }}>{m.target}</div>
+                  <div style={{ fontSize: 12, color: '#475569' }}>{m.note}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* 4. ปัจจัยเสี่ยงที่ป้องกันไม่ได้ */}
+            <div style={{ background: '#fffbeb', border: '1.5px solid #fef08a', borderRadius: 12, padding: '18px 22px' }}>
+              <h4 style={{ fontSize: 15, fontWeight: 800, color: '#b45309', margin: '0 0 8px' }}>
+                ปัจจัยเสี่ยงที่ไม่สามารถป้องกันได้
+              </h4>
+              <p style={{ fontSize: 13, color: '#78350f', lineHeight: 1.7, margin: 0 }}>
+                นอกจากปัจจัยเสี่ยงที่ป้องกันได้ ยังมีปัจจัยเสี่ยงที่ไม่สามารถป้องกันได้ เช่น <strong>อายุที่มากขึ้น</strong> ทำให้หลอดเลือดเสื่อมตามวัย ผนังหลอดเลือดหนาและแข็งตัวจากการเกาะของไขมันและหินปูน, <strong>เพศ</strong> (พบว่าเพศชายมีความเสี่ยงสูงกว่าเพศหญิง), และ <strong>พันธุกรรม/ประวัติครอบครัว</strong> ดังนั้นจึงควรหมั่นสังเกตอาการอย่างสม่ำเสมอ หากสงสัยให้รีบพบแพทย์ทันที
+              </p>
+            </div>
+          </div>
+
+          {/* Clinical Risk Assessment Criteria Table */}
+          <div className="feature-card" style={{ padding: '24px 32px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', margin: 0 }}>
+                เกณฑ์ระดับความเสี่ยงและคำแนะนำทางการแพทย์ (Clinical Interpretation)
+              </h3>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#64748b', background: '#f1f5f9', padding: '4px 10px', borderRadius: 6 }}>
+                มาตรฐานการประเมิน
+              </span>
+            </div>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
+                    <th style={{ padding: '12px 14px', fontWeight: 800, color: '#334155' }}>ระดับความเสี่ยง (Risk Category)</th>
+                    <th style={{ padding: '12px 14px', fontWeight: 800, color: '#334155' }}>เปอร์เซ็นต์ความเสี่ยง</th>
+                    <th style={{ padding: '12px 14px', fontWeight: 800, color: '#334155' }}>คำแนะนำทางการแพทย์ (Clinical Interpretation)</th>
+                    <th style={{ padding: '12px 14px', fontWeight: 800, color: '#334155', textAlign: 'center' }}>การแสดงผลสี</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    {
+                      name: 'ความเสี่ยงต่ำ (Low Risk)',
+                      range: 'น้อยกว่า 5%',
+                      advice: 'เน้นการดูแลสุขภาพพื้นฐาน ป้องกันไม่ให้เกิดปัจจัยเสี่ยง',
+                      colorName: 'สีเขียว',
+                      color: '#16a34a',
+                      bg: '#f0fdf4',
+                      border: '#bbf7d0',
+                    },
+                    {
+                      name: 'ความเสี่ยงคาบเกี่ยว (Borderline)',
+                      range: '5% - 7.4%',
+                      advice: 'เริ่มมีความเสี่ยง ควรเริ่มปรับเปลี่ยนพฤติกรรมการใช้ชีวิต',
+                      colorName: 'สีเหลืองอ่อน',
+                      color: '#ca8a04',
+                      bg: '#fefce8',
+                      border: '#fef08a',
+                    },
+                    {
+                      name: 'ความเสี่ยงปานกลาง (Intermediate)',
+                      range: '7.5% - 19.9%',
+                      advice: 'ควรพบแพทย์เพื่อพิจารณาควบคุมความดันและปัจจัยเสี่ยงอื่นๆ',
+                      colorName: 'สีเหลือง / ส้ม',
+                      color: '#ea580c',
+                      bg: '#fff7ed',
+                      border: '#fed7aa',
+                    },
+                    {
+                      name: 'ความเสี่ยงสูง (High Risk)',
+                      range: '20% ขึ้นไป',
+                      advice: 'มีความเสี่ยงอันตราย ต้องอยู่ในการดูแลของแพทย์และพิจารณาให้ยา',
+                      colorName: 'สีแดง',
+                      color: '#dc2626',
+                      bg: '#fef2f2',
+                      border: '#fecaca',
+                    }
+                  ].map((tier, idx) => (
+                    <tr 
+                      key={idx} 
+                      style={{ 
+                        background: '#ffffff',
+                        borderBottom: '1px solid #eef3f6',
+                        borderLeft: `5px solid ${tier.color}`,
+                        transition: 'background 0.2s ease'
+                      }}
+                    >
+                      <td style={{ padding: '12px 14px', fontWeight: 700, color: tier.color }}>
+                        {tier.name}
+                      </td>
+                      <td style={{ padding: '12px 14px', fontWeight: 600, color: '#475569' }}>
+                        {tier.range}
+                      </td>
+                      <td style={{ padding: '12px 14px', color: '#334155', lineHeight: 1.5, fontWeight: 500 }}>
+                        {tier.advice}
+                      </td>
+                      <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                        <span style={{ 
+                          display: 'inline-block',
+                          padding: '4px 10px', 
+                          borderRadius: 6, 
+                          background: tier.bg, 
+                          color: tier.color, 
+                          fontWeight: 800, 
+                          fontSize: 12,
+                          border: `1px solid ${tier.border}`
+                        }}>
+                          {tier.colorName}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONTENT: หน้าที่ 4 (แนวทางการรักษาโรคหลอดเลือดสมองเฉียบพลัน Treatment) */}
+      {activeSubTab === 'treatment' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div className="feature-card" style={{ padding: '28px 34px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#fef2f2', display: 'grid', placeItems: 'center' }}>
+                <HeartPulse size={26} color="#dc2626" />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', margin: 0 }}>
+                  แนวทางการรักษาโรคหลอดเลือดสมองเฉียบพลัน (Treatment of Stroke)
+                </h3>
+                <div style={{ fontSize: 13, color: '#64748b' }}>การวินิจฉัยและการรักษาฉุกเฉินเพื่อช่วยชีวิตและลดความพิการ</div>
+              </div>
+            </div>
+
+            <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.7, marginBottom: 18 }}>
+              <strong>โรคหลอดเลือดสมองเฉียบพลัน (Stroke)</strong> คือ โรคที่มีอาการผิดปกติทางระบบประสาทอย่างเฉียบพลันที่เกิดจากหลอดเลือดสมอง ได้แก่ แขนขาอ่อนแรงครึ่งซีก ปากเบี้ยว พูดไม่ชัด วิงเวียนศีรษะหรือเดินเซ หมดสติ
+            </p>
+
+            {/* การตรวจวินิจฉัย */}
+            <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 12, padding: '16px 20px', marginBottom: 20 }}>
+              <h4 style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
+                การตรวจวินิจฉัยยืนยันโรค
+              </h4>
+              <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                ผู้ป่วยจะได้รับการตรวจวินิจฉัยยืนยันโรคอย่างเร่งด่วน ด้วยเครื่อง <strong>เอกซเรย์คอมพิวเตอร์สมอง (CT brain)</strong> หรือ <strong>เอกซเรย์คลื่นแม่เหล็กสมอง (MRI brain)</strong> เพื่อแยกชนิดของโรคว่าเกิดจากการตีบตันหรือเลือดออกในสมอง
+              </p>
+            </div>
+
+            {/* แนวทางการรักษา 2 กรณี */}
+            <h4 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 14, paddingBottom: 8, borderBottom: '2px solid #d1e0e8' }}>
+              แนวทางการรักษาแบ่งตามชนิดของโรค
+            </h4>
+
+            {/* วิธีที่ 1: ยาสลายลิ่มเลือด rt-PA */}
+            <div style={{ background: '#ffffff', borderRadius: 14, padding: 22, border: '1.5px solid #e2e8f0', marginBottom: 18, boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <h5 style={{ fontSize: 16, fontWeight: 900, color: '#1e40af', margin: 0 }}>
+                  วิธีที่ 1: การให้ “ยาสลายลิ่มเลือด” (rt-PA) ทางหลอดเลือดดำ
+                </h5>
+                <span style={{ fontSize: 12, fontWeight: 800, background: '#dbeafe', color: '#1e40af', padding: '3px 10px', borderRadius: 6 }}>
+                  ภายใน 4.5 ชม.
+                </span>
+              </div>
+              <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6, marginBottom: 14 }}>
+                เป็นวิธีการรักษาผู้ป่วยโรคหลอดเลือดสมองตีบหรืออุดตันเฉียบพลันที่มีอาการไม่เกิน 4.5 ชั่วโมง และไม่มีข้อห้ามในการให้ยา โดยแพทย์จะให้ยาสลายลิ่มเลือดเพื่อเปิดหลอดเลือดทางหลอดเลือดดำ ทำให้เลือดสามารถไปเลี้ยงสมองส่วนที่ขาดออกซิเจนได้ทันเวลา
+              </p>
+
+              <div style={{ overflowX: 'auto', marginBottom: 14 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ background: '#eff6ff', borderBottom: '2px solid #bfdbfe' }}>
+                      <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 800, color: '#1e3a8a' }}>ข้อดี / ประสิทธิภาพและการประเมิน</th>
+                      <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 800, color: '#15803d' }}>ได้รับยา rt-PA</th>
+                      <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 800, color: '#dc2626' }}>ไม่ได้รับยา</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style={{ borderBottom: '1px solid #eef3f6' }}>
+                      <td style={{ padding: '10px 12px', fontWeight: 700, color: '#1e293b' }}>ความพิการน้อยลงจนแทบไม่มี</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 900, color: '#15803d', background: '#f0fdf4' }}>43 %</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: '#64748b' }}>26 %</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid #eef3f6' }}>
+                      <td style={{ padding: '10px 12px', fontWeight: 700, color: '#1e293b' }}>มีความพิการและต้องมีคนดูแล</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: '#15803d', background: '#f0fdf4' }}>40 %</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 900, color: '#dc2626' }}>53 %</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid #eef3f6' }}>
+                      <td style={{ padding: '10px 12px', fontWeight: 700, color: '#1e293b' }}>โอกาสเลือดออกในสมอง</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: '#ca8a04', background: '#fefce8' }}>7 %</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: '#64748b' }}>0.6 %</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '10px 12px', fontWeight: 700, color: '#1e293b' }}>โอกาสเสียชีวิต</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: '#15803d', background: '#f0fdf4' }}>17 %</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: '#dc2626' }}>21 %</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div style={{ background: '#fef2f2', padding: '12px 16px', borderRadius: 8, fontSize: 12, color: '#991b1b', lineHeight: 1.6 }}>
+                <strong>ข้อเสีย / ภาวะแทรกซ้อนที่อาจพบ:</strong> เลือดออกง่ายผิดปกติ (เช่น ตามไรฟัน ในทางเดินอาหาร), ผู้ป่วย 1 ใน 100 รายมีโอกาสแพ้ยารุนแรง, และผู้ป่วย 7 ใน 100 รายมีโอกาสเลือดออกในสมอง
+              </div>
+            </div>
+
+            {/* วิธีที่ 2: Mechanical Thrombectomy */}
+            <div style={{ background: '#ffffff', borderRadius: 14, padding: 22, border: '1.5px solid #e2e8f0', marginBottom: 18, boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+              <h5 style={{ fontSize: 16, fontWeight: 900, color: '#0f766e', margin: '0 0 10px' }}>
+                วิธีที่ 2: การใส่สายสวนเพื่อเปิดหลอดเลือด (Mechanical Thrombectomy)
+              </h5>
+              <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6, marginBottom: 14 }}>
+                เมื่อมีอาการหลอดเลือดแดงสมองขนาดใหญ่ตีบหรืออุดตัน แพทย์จะใส่สายสวนทางหลอดเลือดแดงบริเวณขาหนีบไปตามหลอดเลือดจนถึงหลอดเลือดสมองบริเวณที่มีการอุดตันของลิ่มเลือด และทำการลากหรือดูดลิ่มเลือดออกเพื่อเปิดหลอดเลือดสมอง ทำให้เลือดไปเลี้ยงสมองได้ (และ/หรือให้ร่วมกับยาสลายลิ่มเลือดตามข้อบ่งชี้)
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                <div style={{ background: '#f0fdfa', border: '1.5px solid #ccfbf1', padding: '14px 16px', borderRadius: 10, textAlign: 'center' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#0f766e' }}>โอกาสเปิดหลอดเลือดสำเร็จ</div>
+                  <div style={{ fontSize: 24, fontWeight: 900, color: '#0d9488', marginTop: 4 }}>80 %</div>
+                </div>
+                <div style={{ background: '#f0fdfa', border: '1.5px solid #ccfbf1', padding: '14px 16px', borderRadius: 10, textAlign: 'center' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#0f766e' }}>กลับมาใช้ชีวิตได้ปกติ</div>
+                  <div style={{ fontSize: 24, fontWeight: 900, color: '#059669', marginTop: 4 }}>50 - 60 %</div>
+                </div>
+              </div>
+
+              <div style={{ background: '#fffbeb', padding: '10px 14px', borderRadius: 8, fontSize: 12, color: '#92400e' }}>
+                <strong>ภาวะแทรกซ้อนที่อาจพบ:</strong> หลอดเลือดฉีกขาดหรือมีเลือดออกจากสมองน้อยกว่า 5%
+              </div>
+            </div>
+
+            {/* กรณีโรคหลอดเลือดสมองแตก หรือ ไม่เลือกรับ 2 วิธีแรก */}
+            <div className="grid-2" style={{ gap: 14 }}>
+              <div style={{ background: '#fef2f2', border: '1.5px solid #fecaca', padding: '16px 18px', borderRadius: 12 }}>
+                <h5 style={{ fontSize: 14, fontWeight: 800, color: '#991b1b', margin: '0 0 6px' }}>
+                  กรณีโรคหลอดเลือดสมองแตก
+                </h5>
+                <p style={{ fontSize: 12, color: '#450a0a', lineHeight: 1.6, margin: 0 }}>
+                  ปรึกษาแพทย์ศัลยกรรมระบบประสาทเพื่อวางแผนการรักษาอย่างเร่งด่วน โดยพิจารณาว่าจำเป็นต้องได้รับการผ่าตัดเพื่อระบายก้อนเลือดหรือลดความดันในกะโหลกศีรษะหรือไม่
+                </p>
+              </div>
+
+              <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', padding: '16px 18px', borderRadius: 12 }}>
+                <h5 style={{ fontSize: 14, fontWeight: 800, color: '#334155', margin: '0 0 6px' }}>
+                  การรักษาตามอาการและการฟื้นฟู
+                </h5>
+                <p style={{ fontSize: 12, color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                  หากไม่สามารถรับการรักษา 2 วิธีแรกได้ ผู้ป่วยจะได้รับการรักษาตามอาการ เฝ้าระวังภาวะแทรกซ้อน ได้รับยาต้านเกล็ดเลือด และการทำกายภาพบำบัดฟื้นฟูอย่างต่อเนื่อง
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -738,7 +1371,53 @@ function PredictView() {
     if (bmi) set('bmi', bmi);
   }, [form.weight, form.height]);
 
+  function validateStep(currentStep) {
+    if (currentStep === 1) {
+      if (!form.patient_id || !form.patient_id.trim()) {
+        return 'กรุณากรอกชื่อผู้ป่วย (Patient Name)';
+      }
+      if (!form.age || Number(form.age) <= 0 || Number(form.age) > 120) {
+        return 'กรุณากรอกอายุผู้ป่วยให้ถูกต้อง (1-120 ปี)';
+      }
+      if (!form.weight || Number(form.weight) <= 0) {
+        return 'กรุณากรอกน้ำหนักผู้ป่วยให้ถูกต้อง';
+      }
+      if (!form.height || Number(form.height) <= 0) {
+        return 'กรุณากรอกส่วนสูงผู้ป่วยให้ถูกต้อง';
+      }
+    } else if (currentStep === 2) {
+      if (!form.systolic_bp || Number(form.systolic_bp) <= 0) {
+        return 'กรุณากรอกความดันโลหิตตัวบน Systolic BP (mmHg)';
+      }
+      if (!form.diastolic_bp || Number(form.diastolic_bp) <= 0) {
+        return 'กรุณากรอกความดันโลหิตตัวล่าง Diastolic BP (mmHg)';
+      }
+      if (!form.blood_sugar || Number(form.blood_sugar) <= 0) {
+        return 'กรุณากรอกระดับน้ำตาลในเลือด Blood Sugar (mg/dL)';
+      }
+      if (!form.cholesterol || Number(form.cholesterol) <= 0) {
+        return 'กรุณากรอกระดับไขมันในเลือด Cholesterol (mg/dL)';
+      }
+    }
+    return null;
+  }
+
+  function handleNextStep() {
+    const err = validateStep(step);
+    if (err) {
+      setError(err);
+      return;
+    }
+    setError('');
+    setStep(s => s + 1);
+  }
+
   async function handlePredict() {
+    const err1 = validateStep(1);
+    if (err1) { setError(err1); setStep(1); return; }
+    const err2 = validateStep(2);
+    if (err2) { setError(err2); setStep(2); return; }
+
     setError(''); setLoading(true);
     try {
       const payload = {
@@ -799,24 +1478,29 @@ function PredictView() {
       </div>
 
       <div className="prediction-form" style={{ padding: 28 }}>
-        {error && <div className="error-box" style={{ marginBottom: 16 }}>{error}</div>}
+        {error && (
+          <div className="error-box" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <AlertTriangle size={18} color="#dc2626" />
+            <span>{error}</span>
+          </div>
+        )}
 
         {/* STEP 1 */}
         {step === 1 && (
           <div>
             <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 20 }}>ขั้นที่ 1: ข้อมูลผู้ป่วย</h3>
             <div className="grid-2">
-              <div className="field"><span>ชื่อผู้ป่วย (Patient Name)</span><input placeholder="กรอกชื่อผู้ป่วย" value={form.patient_id} onChange={e => set('patient_id', e.target.value)} /></div>
+              <div className="field"><span>ชื่อผู้ป่วย (Patient Name)</span><input placeholder="กรอกชื่อผู้ป่วย" value={form.patient_id} onChange={e => { setError(''); set('patient_id', e.target.value); }} /></div>
               <div className="field">
                 <span>เพศ (Gender)</span>
-                <select value={form.gender} onChange={e => set('gender', e.target.value)}>
+                <select value={form.gender} onChange={e => { setError(''); set('gender', e.target.value); }}>
                   <option value="ชาย">ชาย</option>
                   <option value="หญิง">หญิง</option>
                 </select>
               </div>
-              <div className="field"><span>อายุ (ปี)</span><input type="number" placeholder="60" min="1" max="120" value={form.age} onChange={e => set('age', e.target.value)} /></div>
-              <div className="field"><span>น้ำหนัก (กก.)</span><input type="number" placeholder="70" value={form.weight} onChange={e => set('weight', e.target.value)} /></div>
-              <div className="field"><span>ส่วนสูง (ซม.)</span><input type="number" placeholder="170" value={form.height} onChange={e => set('height', e.target.value)} /></div>
+              <div className="field"><span>อายุ (ปี)</span><input type="number" placeholder="เช่น 60" min="1" max="120" value={form.age} onChange={e => { setError(''); set('age', e.target.value); }} /></div>
+              <div className="field"><span>น้ำหนัก (กก.)</span><input type="number" placeholder="เช่น 70" value={form.weight} onChange={e => { setError(''); set('weight', e.target.value); }} /></div>
+              <div className="field"><span>ส่วนสูง (ซม.)</span><input type="number" placeholder="เช่น 170" value={form.height} onChange={e => { setError(''); set('height', e.target.value); }} /></div>
               <div className="field">
                 <span>BMI (คำนวณอัตโนมัติ)</span>
                 <input type="number" placeholder="24.2" value={form.bmi} onChange={e => set('bmi', e.target.value)} style={{ background: computedBMI() ? '#f0fbf5' : undefined }} />
@@ -832,10 +1516,10 @@ function PredictView() {
             <div className="grid-2" style={{ gap: 24 }}>
               <div>
                 <p style={{ fontSize: 14, fontWeight: 800, color: '#1877f2', marginBottom: 12 }}>ข้อมูลการตรวจสุขภาพ</p>
-                <div className="field"><span>ความดันโลหิตตัวบน Systolic BP (mmHg)</span><input type="number" placeholder="140" value={form.systolic_bp} onChange={e => set('systolic_bp', e.target.value)} /></div>
-                <div className="field"><span>ความดันโลหิตตัวล่าง Diastolic BP (mmHg)</span><input type="number" placeholder="90" value={form.diastolic_bp} onChange={e => set('diastolic_bp', e.target.value)} /></div>
-                <div className="field"><span>น้ำตาลในเลือด Blood Sugar (mg/dL)</span><input type="number" placeholder="100" value={form.blood_sugar} onChange={e => set('blood_sugar', e.target.value)} /></div>
-                <div className="field"><span>ไขมันในเลือด Cholesterol (mg/dL)</span><input type="number" placeholder="200" value={form.cholesterol} onChange={e => set('cholesterol', e.target.value)} /></div>
+                <div className="field"><span>ความดันโลหิตตัวบน Systolic BP (mmHg)</span><input type="number" placeholder="เช่น 140" value={form.systolic_bp} onChange={e => { setError(''); set('systolic_bp', e.target.value); }} /></div>
+                <div className="field"><span>ความดันโลหิตตัวล่าง Diastolic BP (mmHg)</span><input type="number" placeholder="เช่น 90" value={form.diastolic_bp} onChange={e => { setError(''); set('diastolic_bp', e.target.value); }} /></div>
+                <div className="field"><span>น้ำตาลในเลือด Blood Sugar (mg/dL)</span><input type="number" placeholder="เช่น 100" value={form.blood_sugar} onChange={e => { setError(''); set('blood_sugar', e.target.value); }} /></div>
+                <div className="field"><span>ไขมันในเลือด Cholesterol (mg/dL)</span><input type="number" placeholder="เช่น 200" value={form.cholesterol} onChange={e => { setError(''); set('cholesterol', e.target.value); }} /></div>
 
                 <div style={{ marginTop: 16 }}>
                   <p style={{ fontSize: 14, fontWeight: 800, color: '#071838', marginBottom: 10 }}>ประวัติโรค</p>
@@ -930,7 +1614,7 @@ function PredictView() {
             </button>
           ) : <div />}
           {step < 3 ? (
-            <button className="primary-button" style={{ width: 'auto', padding: '10px 24px' }} onClick={() => setStep(s => s + 1)}>
+            <button className="primary-button" style={{ width: 'auto', padding: '10px 24px' }} onClick={handleNextStep}>
               ถัดไป
             </button>
           ) : (
