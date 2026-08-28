@@ -991,7 +991,7 @@ function DiseaseInfoView() {
               {/* 1. โภชนาการ */}
               <div style={{ background: '#ffffff', padding: 20, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
                 <h4 style={{ fontSize: 15, fontWeight: 800, color: '#15803d', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  🥗 รับประทานอาหารที่ดีต่อสุขภาพ
+                  รับประทานอาหารที่ดีต่อสุขภาพ
                 </h4>
                 <ul style={{ paddingLeft: 18, fontSize: 13, color: '#475569', lineHeight: 1.7, margin: 0 }}>
                   <li>เน้นอาหารที่มีเส้นใยสูง และไขมันต่ำ</li>
@@ -1004,7 +1004,7 @@ function DiseaseInfoView() {
               {/* 2. ออกกำลังกาย & งดบุหรี่/แอลกอฮอล์ */}
               <div style={{ background: '#ffffff', padding: 20, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
                 <h4 style={{ fontSize: 15, fontWeight: 800, color: '#0369a1', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  🏃‍♂️ ออกกำลังกายและปรับพฤติกรรม
+                  ออกกำลังกายและปรับพฤติกรรม
                 </h4>
                 <ul style={{ paddingLeft: 18, fontSize: 13, color: '#475569', lineHeight: 1.7, margin: 0 }}>
                   <li>ออกกำลังกายอย่างน้อยวันละ 30 นาที สม่ำเสมอ</li>
