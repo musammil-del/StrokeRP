@@ -130,10 +130,10 @@ def predict_stroke(request):
             except (ValueError, TypeError):
                 return JsonResponse({'error': f'ค่า {f} ไม่ถูกต้อง'}, status=400)
 
-        # Load the model (Randomforestmodel1.pkl)
-        model_path = os.path.join(settings.BASE_DIR, "prediction", "ml_models", "Randomforestmodel1.pkl")
+        # Load the model (Randomforestmd.pkl)
+        model_path = os.path.join(settings.BASE_DIR, "prediction", "ml_models", "Randomforestmd.pkl")
         if not os.path.exists(model_path):
-            return JsonResponse({'error': 'ไม่พบไฟล์โมเดล Randomforestmodel1.pkl'}, status=400)
+            return JsonResponse({'error': 'ไม่พบไฟล์โมเดล Randomforestmd.pkl'}, status=400)
         
         loaded_data = joblib.load(model_path)
         model = loaded_data["model"]
@@ -182,7 +182,7 @@ def predict_stroke(request):
             confidence = None
 
         # Save to database
-        user = request.user if request.user.is_authenticated else None
+        user = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
         
         # Generate predictions log (store scaled values to match DecimalField type)
         prediction_record = StrokePrediction(

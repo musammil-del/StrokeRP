@@ -38,7 +38,7 @@ from imblearn.over_sampling import SMOTE
 # 1) โหลดข้อมูล (ไฟล์นี้ผ่านการทำ Feature Selection มาแล้ว)
 # -----------------------------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.path.join(BASE_DIR, "featuresdatasetstroke.csv")
+DATA_PATH = os.path.join(BASE_DIR, "featuresDatasetstroke1.csv")
 MODEL_PATH = os.path.join(BASE_DIR, "Randomforestmodel1.pkl")
 TARGET_COL = "Stroke_Type"
 

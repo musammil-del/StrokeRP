@@ -27,7 +27,7 @@ from sklearn.metrics import (
 # -----------------------------------------------------------------------
 # 1) โหลดข้อมูล
 # -----------------------------------------------------------------------
-DATA_PATH = "datasetstroke.csv"          # เปลี่ยน path ตามตำแหน่งไฟล์จริงของคุณ
+DATA_PATH = "storkev1.csv"      # เปลี่ยน path ตามตำแหน่งไฟล์จริงของคุณ
 MODEL_PATH = "random_forest_model.pkl"
 TARGET_COL = "Stroke_Type"        # คอลัมน์เป้าหมาย (label)
 
@@ -41,6 +41,7 @@ df = pd.read_csv(DATA_PATH)
 # ตัดคอลัมน์ ID ออก เพราะไม่ใช่ feature ที่มีความหมายต่อการทำนาย
 X = df.drop(columns=[
     TARGET_COL,
+    "Patient_ID",
     "Is_Hemorrhagic_Stroke",
     "Is_Ischemic_Stroke",
     "CT_Infarction",
@@ -73,10 +74,10 @@ print(f"จำนวนข้อมูล Test : {X_test.shape[0]} แถว")
 param_grid = {
     "n_estimators": [100, 200],
     "criterion": ["gini", "entropy"],
-    "max_depth": [5, 10, None],
+    "max_depth": [None, 10, 20],
     "min_samples_split": [2, 5],
     "min_samples_leaf": [1, 2],
-    "max_features": ["sqrt", "log2"],
+    "class_weight": [None, "balanced"],
 }
 
 # หมายเหตุ: ตั้ง n_jobs=1 ที่ตัวโมเดล เพื่อไม่ให้ขนาน (parallel) ซ้อนกับ GridSearchCV

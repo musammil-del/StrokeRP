@@ -27,7 +27,7 @@ from sklearn.metrics import (
 # -----------------------------------------------------------------------
 # 1) โหลดข้อมูล
 # -----------------------------------------------------------------------
-DATA_PATH = "datasetstroke.csv"          # เปลี่ยน path ตามตำแหน่งไฟล์จริงของคุณ
+DATA_PATH = "storkev1.csv"          # เปลี่ยน path ตามตำแหน่งไฟล์จริงของคุณ
 MODEL_PATH = "xgboost_model.pkl"
 TARGET_COL = "Stroke_Type"        # คอลัมน์เป้าหมาย (label)
 
@@ -39,6 +39,7 @@ df = pd.read_csv(DATA_PATH)
 # ตัดคอลัมน์ ID ออก เพราะไม่ใช่ feature ที่มีความหมายต่อการทำนาย
 X = df.drop(columns=[
     TARGET_COL,
+    "Patient_ID",
     "Is_Hemorrhagic_Stroke",
     "Is_Ischemic_Stroke",
     "CT_Infarction",
