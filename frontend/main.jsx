@@ -1147,7 +1147,7 @@ function DiseaseInfoView() {
         </div>
       )}
 
-      {/* CONTENT: หน้าที่ 4 (แนวทางการรักษาโรคหลอดเลือดสมองเฉียบพลัน Treatment) */}
+      {/* CONTENT: หน้าที่ 4 (แนวทางการรักษาโรคหลอดเลือดสมอง Treatment) */}
       {activeSubTab === 'treatment' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div className="feature-card" style={{ padding: '28px 34px' }}>
@@ -1157,14 +1157,14 @@ function DiseaseInfoView() {
               </div>
               <div>
                 <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', margin: 0 }}>
-                  แนวทางการรักษาโรคหลอดเลือดสมองเฉียบพลัน (Treatment of Stroke)
+                  แนวทางการรักษาโรคหลอดเลือดสมอง (Treatment of Stroke)
                 </h3>
                 <div style={{ fontSize: 13, color: '#64748b' }}>การวินิจฉัยและการรักษาฉุกเฉินเพื่อช่วยชีวิตและลดความพิการ</div>
               </div>
             </div>
 
             <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.7, marginBottom: 18 }}>
-              <strong>โรคหลอดเลือดสมองเฉียบพลัน (Stroke)</strong> คือ โรคที่มีอาการผิดปกติทางระบบประสาทอย่างเฉียบพลันที่เกิดจากหลอดเลือดสมอง ได้แก่ แขนขาอ่อนแรงครึ่งซีก ปากเบี้ยว พูดไม่ชัด วิงเวียนศีรษะหรือเดินเซ หมดสติ
+              <strong>โรคหลอดเลือดสมอง (Stroke)</strong> คือ โรคที่มีอาการผิดปกติทางระบบประสาทอย่างเฉียบพลันที่เกิดจากหลอดเลือดสมอง ได้แก่ แขนขาอ่อนแรงครึ่งซีก ปากเบี้ยว พูดไม่ชัด วิงเวียนศีรษะหรือเดินเซ หมดสติ
             </p>
 
             {/* การตรวจวินิจฉัย */}
