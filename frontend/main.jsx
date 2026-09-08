@@ -109,28 +109,30 @@ function DonutChart({ data, size = 160 }) {
   );
 }
 
-function BarChart({ data, height = 180 }) {
+function BarChart({ data, height = 180, compact = false }) {
   const rawMax = Math.max(...data.map(d => d.value), 10);
-  const maxVal = Math.ceil(rawMax / 100) * 100 || 1000;
-  const yTicks = [0, maxVal * 0.2, maxVal * 0.4, maxVal * 0.6, maxVal * 0.8, maxVal];
+  const maxVal = Math.ceil(rawMax / (compact ? 10 : 100)) * (compact ? 10 : 100) || 100;
+  const yTicks = compact 
+    ? [0, Math.round(maxVal * 0.5), maxVal] 
+    : [0, maxVal * 0.2, maxVal * 0.4, maxVal * 0.6, maxVal * 0.8, maxVal];
 
-  const paddingLeft = 45;
-  const paddingBottom = 55;
+  const paddingLeft = compact ? 30 : 45;
+  const paddingBottom = compact ? 28 : 55;
   const chartHeight = height;
-  const chartWidth = 520;
+  const chartWidth = compact ? 280 : 520;
 
-  const barWidth = 64;
+  const barWidth = compact ? 36 : 64;
   const gap = (chartWidth - paddingLeft - (data.length * barWidth)) / (data.length + 1);
 
   return (
-    <svg viewBox={`0 0 ${chartWidth + 20} ${chartHeight + paddingBottom + 10}`} style={{ width: '100%', height: chartHeight + paddingBottom + 10 }}>
+    <svg viewBox={`0 0 ${chartWidth + 10} ${chartHeight + paddingBottom + 10}`} style={{ width: '100%', height: '100%', maxHeight: chartHeight + paddingBottom + 10 }}>
       {/* Horizontal Y-axis Gridlines & Labels */}
       {yTicks.map((tick, i) => {
         const y = chartHeight - (tick / maxVal) * chartHeight;
         return (
           <g key={i}>
             <line x1={paddingLeft} y1={y} x2={chartWidth} y2={y} stroke="#f1f5f9" strokeDasharray={tick === 0 ? "0" : "4 4"} strokeWidth="1.5" />
-            <text x={paddingLeft - 8} y={y + 4} textAnchor="end" fontSize="11" fontWeight="600" fill="#94a3b8">
+            <text x={paddingLeft - 6} y={y + 3} textAnchor="end" fontSize={compact ? "9" : "11"} fontWeight="600" fill="#94a3b8">
               {Math.round(tick).toLocaleString()}
             </text>
           </g>
@@ -152,13 +154,83 @@ function BarChart({ data, height = 180 }) {
         return (
           <g key={i}>
             <rect x={x} y={y} width={barWidth} height={bh} fill={d.color || "#1877f2"} rx="4" />
-            <text x={x + barWidth / 2} y={chartHeight + 18} textAnchor="middle" fontSize="11" fontWeight="700" fill="#334155">
+            {compact && (
+              <text x={x + barWidth / 2} y={y - 4} textAnchor="middle" fontSize="9" fontWeight="800" fill={d.color || "#334155"}>
+                {d.value}
+              </text>
+            )}
+            <text x={x + barWidth / 2} y={chartHeight + (compact ? 14 : 18)} textAnchor="middle" fontSize={compact ? "9" : "11"} fontWeight="700" fill="#334155">
               <tspan x={x + barWidth / 2} dy="0">{mainText}</tspan>
-              {subText && <tspan x={x + barWidth / 2} dy="15" fontSize="10" fontWeight="600" fill="#64748b">{subText}</tspan>}
+              {!compact && subText && <tspan x={x + barWidth / 2} dy="15" fontSize="10" fontWeight="600" fill="#64748b">{subText}</tspan>}
             </text>
           </g>
         );
       })}
+    </svg>
+  );
+}
+
+function LineChart({ data, height = 110 }) {
+  const rawMax = Math.max(...data.map(d => d.value), 10);
+  const maxVal = Math.ceil(rawMax / 10) * 10 || 100;
+  const paddingLeft = 32;
+  const paddingRight = 24;
+  const paddingTop = 16;
+  const paddingBottom = 26;
+  const chartWidth = 280;
+  const chartHeight = height;
+
+  const points = data.map((d, i) => {
+    const x = paddingLeft + (i / (data.length - 1 || 1)) * (chartWidth - paddingLeft - paddingRight);
+    const y = paddingTop + (1 - (d.value / maxVal)) * (chartHeight - paddingTop - paddingBottom);
+    return { x, y, ...d };
+  });
+
+  const pathD = points.reduce((acc, p, i) => {
+    return i === 0 ? `M ${p.x} ${p.y}` : `${acc} L ${p.x} ${p.y}`;
+  }, '');
+
+  const areaD = points.length > 0 
+    ? `${pathD} L ${points[points.length - 1].x} ${chartHeight - paddingBottom} L ${points[0].x} ${chartHeight - paddingBottom} Z` 
+    : '';
+
+  return (
+    <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} style={{ width: '100%', height: '100%', maxHeight: chartHeight }}>
+      <defs>
+        <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#1877f2" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="#1877f2" stopOpacity="0.0" />
+        </linearGradient>
+      </defs>
+
+      {/* Gridlines */}
+      {[0, 0.5, 1].map((pct, i) => {
+        const y = paddingTop + (1 - pct) * (chartHeight - paddingTop - paddingBottom);
+        const val = Math.round(pct * maxVal);
+        return (
+          <g key={i}>
+            <line x1={paddingLeft} y1={y} x2={chartWidth - paddingRight} y2={y} stroke="#f1f5f9" strokeDasharray="3 3" strokeWidth="1" />
+            <text x={paddingLeft - 6} y={y + 3} textAnchor="end" fontSize="9" fill="#94a3b8" fontWeight="600">{val}</text>
+          </g>
+        );
+      })}
+
+      {/* Area */}
+      {areaD && <path d={areaD} fill="url(#lineGrad)" />}
+
+      {/* Line */}
+      {pathD && <path d={pathD} fill="none" stroke="#1877f2" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
+
+      {/* Points & Labels */}
+      {points.map((p, i) => (
+        <g key={i}>
+          <circle cx={p.x} cy={p.y} r="4.5" fill="#ffffff" stroke={p.color || '#1877f2'} strokeWidth="2" />
+          <text x={p.x} y={p.y - 6} textAnchor="middle" fontSize="9" fontWeight="800" fill={p.color || '#1877f2'}>{p.value}</text>
+          <text x={p.x} y={chartHeight - paddingBottom + 14} textAnchor="middle" fontSize="9" fontWeight="700" fill="#475569">
+            {p.label.split(' ')[0]}
+          </text>
+        </g>
+      ))}
     </svg>
   );
 }
@@ -424,6 +496,7 @@ function DashboardView({ onNavigatePredict }) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [chartType, setChartType] = useState('donut');
 
   useEffect(() => {
     fetch(`${API}/api/dashboard-stats/`, { credentials: 'include' })
@@ -510,22 +583,68 @@ function DashboardView({ onNavigatePredict }) {
           <div className="dash-stat-unit">คน</div>
         </div>
 
-        {/* Card 3: Donut Proportion */}
-        <div className="feature-card" style={{ padding: '20px 24px' }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginBottom: 12 }}>
-            สัดส่วนประเภทโรค
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <DonutChart data={donutData} size={110} />
-            <div style={{ flex: 1 }}>
-              {donutData.map((d, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, fontSize: 12 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: d.color, flexShrink: 0 }} />
-                  <span style={{ fontWeight: 600, color: '#475569', fontSize: 11 }}>{d.label} ({d.pct}%)</span>
-                </div>
+        {/* Card 3: สัดส่วนประเภทโรค with chart type switcher */}
+        <div className="feature-card" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 180 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 6 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a' }}>
+              สัดส่วนประเภทโรค
+            </div>
+            
+            {/* Chart Type Selector */}
+            <div style={{ display: 'inline-flex', background: '#f1f5f9', borderRadius: 8, padding: 2, gap: 2 }}>
+              {[
+                { id: 'donut', label: 'Donut' },
+                { id: 'bar', label: 'Bar' },
+                { id: 'line', label: 'Line' },
+              ].map(ct => (
+                <button
+                  key={ct.id}
+                  onClick={() => setChartType(ct.id)}
+                  style={{
+                    border: 'none',
+                    padding: '3px 8px',
+                    borderRadius: 6,
+                    fontSize: 11,
+                    fontWeight: chartType === ct.id ? 800 : 600,
+                    background: chartType === ct.id ? '#ffffff' : 'transparent',
+                    color: chartType === ct.id ? '#1877f2' : '#64748b',
+                    boxShadow: chartType === ct.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {ct.label}
+                </button>
               ))}
             </div>
           </div>
+
+          {/* Chart Display Area */}
+          {chartType === 'donut' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <DonutChart data={donutData} size={110} />
+              <div style={{ flex: 1 }}>
+                {donutData.map((d, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 11 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: d.color, flexShrink: 0 }} />
+                    <span style={{ fontWeight: 600, color: '#475569' }}>{d.label} ({d.pct}%)</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {chartType === 'bar' && (
+            <div style={{ width: '100%', height: 115 }}>
+              <BarChart data={barData} height={80} compact />
+            </div>
+          )}
+
+          {chartType === 'line' && (
+            <div style={{ width: '100%', height: 115 }}>
+              <LineChart data={barData} height={105} />
+            </div>
+          )}
         </div>
       </div>
 
@@ -743,14 +862,6 @@ function DashboardView({ onNavigatePredict }) {
           </div>
         </div>
       )}
-
-      {/* Bar Chart Card */}
-      <div className="feature-card" style={{ padding: 24 }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', marginBottom: 20 }}>
-          จำนวนผู้ป่วยแยกตามประเภทโรค
-        </div>
-        <BarChart data={barData} height={180} />
-      </div>
     </div>
   );
 }
@@ -842,42 +953,40 @@ function DiseaseInfoView() {
               </div>
             </div>
 
-            <div style={{ background: '#f8fafc', padding: '18px 22px', borderRadius: 12, border: '1px solid #e2e8f0', marginBottom: 20, lineHeight: 1.8, fontSize: 14, color: '#334155' }}>
+            <p style={{ marginBottom: 20, lineHeight: 1.8, fontSize: 14, color: '#334155' }}>
               <strong>โรคหลอดเลือดสมอง หรือ Stroke</strong> คือ ภาวะสมองขาดเลือดที่เกิดจากหลอดเลือดสมองตีบ/อุดตันหรือมีเลือดออกในสมอง หรืออาการเส้นเลือดในสมองตีบ ทำให้เลือดไม่สามารถไปเลี้ยงสมองได้ ทำให้เซลล์สมองขาดออกซิเจน ส่งผลให้สมองตาย ผู้ป่วยจำเป็นต้องพบแพทย์ทันที การรักษาอย่างรีบด่วนเป็นสิ่งสำคัญมาก เพราะช่วยลดความรุนแรงจากภาวะสมองตาย และรวมถึงลดภาวะแทรกซ้อนอื่นๆ และยังป้องกันความพิการและทุพพลภาพที่จะเกิดขึ้น
-            </div>
+            </p>
 
             <h4 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 14, paddingBottom: 8, borderBottom: '2px solid #d1e0e8' }}>
               โรคหลอดเลือดสมอง แบ่งได้เป็น 2 ชนิด คือ
             </h4>
 
-            <div className="grid-2" style={{ gap: 16 }}>
+            <div>
               {/* Type 1: ตีบ/อุดตัน */}
-              <div style={{ background: '#ffffff', borderRadius: 14, padding: 22, border: '1.5px solid #fed7aa', boxShadow: '0 4px 12px rgba(234, 88, 12, 0.06)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800, background: '#fff7ed', color: '#ea580c', padding: '4px 10px', borderRadius: 6, border: '1px solid #fed7aa' }}>
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <h5 style={{ fontSize: 16, fontWeight: 900, color: '#9a3412', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Activity size={18} color="#ea580c" /> 1. โรคหลอดเลือดสมองตีบหรืออุดตันเฉียบพลัน (Ischemic Stroke)
+                  </h5>
+                  <span style={{ fontSize: 12, fontWeight: 800, background: '#fff7ed', color: '#ea580c', padding: '3px 10px', borderRadius: 6, border: '1px solid #fed7aa' }}>
                     พบมากที่สุด ~80-90%
                   </span>
-                  <Activity size={20} color="#ea580c" />
                 </div>
-                <h5 style={{ fontSize: 16, fontWeight: 900, color: '#9a3412', margin: '0 0 10px' }}>
-                  1. โรคหลอดเลือดสมองตีบหรืออุดตันเฉียบพลัน (Ischemic Stroke)
-                </h5>
                 <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.7, margin: 0 }}>
                   พบประมาณ 80-90% ของผู้ป่วยอัมพฤกษ์อัมพาต เกิดจากความผิดปกติของหลอดเลือดแดงที่ไปเลี้ยงสมองตีบหรืออุดตัน ซึ่งเป็นผลจากการที่ผู้ป่วยมีปัจจัยเสี่ยงต่างๆ เช่น <strong>โรคความดันโลหิตสูง, โรคเบาหวาน, การบริโภคอาหารที่มีไขมันสูง, การสูบบุหรี่, การขาดการออกกำลังกายอย่างสม่ำเสมอ</strong> ผู้ป่วยที่มีปัจจัยเสี่ยงดังกล่าวอยู่เป็นเวลานานจะเป็นผลให้ผนังหลอดเลือดหนาและแข็งตัว เกิดการตีบหรืออุดตัน ทำให้สมองขาดเลือดเกิดอัมพาตตามมาในที่สุด โดยผู้ป่วยเหล่านี้อาจมีโรคหลอดเลือดหัวใจหรือหลอดเลือดส่วนปลายแขนขาตีบร่วมด้วย นอกจากนี้ ยังอาจพบสาเหตุของการเกิดเส้นเลือดสมองอุดตันได้จากเหตุอื่นๆอีก เช่น <strong>ภาวะหัวใจเต้นผิดจังหวะบางชนิด, โรคเลือดบางชนิด เช่น ภาวะเลือดข้นผิดปกติ</strong>
                 </p>
               </div>
 
               {/* Type 2: แตก */}
-              <div style={{ background: '#ffffff', borderRadius: 14, padding: 22, border: '1.5px solid #fecaca', boxShadow: '0 4px 12px rgba(220, 38, 38, 0.06)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800, background: '#fef2f2', color: '#dc2626', padding: '4px 10px', borderRadius: 6, border: '1px solid #fecaca' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <h5 style={{ fontSize: 16, fontWeight: 900, color: '#991b1b', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <AlertTriangle size={18} color="#dc2626" /> 2. โรคหลอดเลือดสมองแตก (Hemorrhagic Stroke)
+                  </h5>
+                  <span style={{ fontSize: 12, fontWeight: 800, background: '#fef2f2', color: '#dc2626', padding: '3px 10px', borderRadius: 6, border: '1px solid #fecaca' }}>
                     ความรุนแรงสูง / อัตราเสียชีวิตสูง
                   </span>
-                  <AlertTriangle size={20} color="#dc2626" />
                 </div>
-                <h5 style={{ fontSize: 16, fontWeight: 900, color: '#991b1b', margin: '0 0 10px' }}>
-                  2. โรคหลอดเลือดสมองแตก (Hemorrhagic Stroke)
-                </h5>
                 <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.7, margin: 0 }}>
                   ภาวะนี้มักสัมพันธ์กับ <strong>โรคความดันโลหิตสูง</strong> ที่ไม่ได้รับการรักษาอยู่เป็นเวลานาน นอกจากนี้ยังอาจสัมพันธ์กับปัจจัยอื่นๆ เช่น <strong>การดื่มแอลกอฮอล์ รวมทั้งยาบางชนิด</strong> โดยการแตกของหลอดเลือดจะทำให้เกิดก้อนเลือดไปกดทับเนื้อสมอง ส่งผลให้เนื้อสมองตายและทำงานผิดปกติเฉียบพลัน
                 </p>
@@ -987,9 +1096,9 @@ function DiseaseInfoView() {
               ร้อยละ 90 ของโรคหลอดเลือดสมองสามารถป้องกันได้โดยการปรับเปลี่ยนพฤติกรรมการใช้ชีวิต เช่น รับประทานอาหารที่ดีต่อสุขภาพ ออกกำลังกาย ผ่อนคลายความเครียด และควบคุมปัจจัยเสี่ยงต่าง ๆ อย่างเคร่งครัด
             </p>
 
-            <div className="grid-2" style={{ gap: 16, marginBottom: 24 }}>
+            <div className="grid-2" style={{ gap: 24, marginBottom: 24 }}>
               {/* 1. โภชนาการ */}
-              <div style={{ background: '#ffffff', padding: 20, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+              <div>
                 <h4 style={{ fontSize: 15, fontWeight: 800, color: '#15803d', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
                   รับประทานอาหารที่ดีต่อสุขภาพ
                 </h4>
@@ -1002,7 +1111,7 @@ function DiseaseInfoView() {
               </div>
 
               {/* 2. ออกกำลังกาย & งดบุหรี่/แอลกอฮอล์ */}
-              <div style={{ background: '#ffffff', padding: 20, borderRadius: 14, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+              <div>
                 <h4 style={{ fontSize: 15, fontWeight: 800, color: '#0369a1', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
                   ออกกำลังกายและปรับพฤติกรรม
                 </h4>
@@ -1019,7 +1128,7 @@ function DiseaseInfoView() {
             <h4 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 14, paddingBottom: 8, borderBottom: '2px solid #d1e0e8' }}>
               เป้าหมายการควบคุมปัจจัยเสี่ยงทางการแพทย์
             </h4>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 24 }}>
               {[
                 { title: 'ดัชนีมวลกาย (BMI)', target: '< 25 kg/m²', note: 'ควบคุมน้ำหนักตัวให้อยู่ในเกณฑ์มาตรฐาน', color: '#16a34a' },
                 { title: 'ความดันโลหิต', target: '≤ 130/80 mmHg', note: 'ตรวจวัดความดันสม่ำเสมอ', color: '#0284c7' },
@@ -1027,7 +1136,7 @@ function DiseaseInfoView() {
                 { title: 'คอเลสเตอรอลรวม', target: '< 200 mg/dL', note: 'ควบคุมไขมันในกระแสเลือด', color: '#ea580c' },
                 { title: 'ตรวจ EKG (> 50 ปี)', target: 'จังหวะหัวใจปกติ', note: 'คัดกรองภาวะหัวใจเต้นพริ้ว (AF)', color: '#7c3aed' },
               ].map((m, idx) => (
-                <div key={idx} style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: 12, border: '1.5px solid #e2e8f0' }}>
+                <div key={idx} style={{ padding: '4px 8px' }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: '#64748b', marginBottom: 4 }}>{m.title}</div>
                   <div style={{ fontSize: 17, fontWeight: 900, color: m.color, marginBottom: 4 }}>{m.target}</div>
                   <div style={{ fontSize: 12, color: '#475569' }}>{m.note}</div>
@@ -1043,105 +1152,6 @@ function DiseaseInfoView() {
               <p style={{ fontSize: 13, color: '#78350f', lineHeight: 1.7, margin: 0 }}>
                 นอกจากปัจจัยเสี่ยงที่ป้องกันได้ ยังมีปัจจัยเสี่ยงที่ไม่สามารถป้องกันได้ เช่น <strong>อายุที่มากขึ้น</strong> ทำให้หลอดเลือดเสื่อมตามวัย ผนังหลอดเลือดหนาและแข็งตัวจากการเกาะของไขมันและหินปูน, <strong>เพศ</strong> (พบว่าเพศชายมีความเสี่ยงสูงกว่าเพศหญิง), และ <strong>พันธุกรรม/ประวัติครอบครัว</strong> ดังนั้นจึงควรหมั่นสังเกตอาการอย่างสม่ำเสมอ หากสงสัยให้รีบพบแพทย์ทันที
               </p>
-            </div>
-          </div>
-
-          {/* Clinical Risk Assessment Criteria Table */}
-          <div className="feature-card" style={{ padding: '24px 32px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
-              <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', margin: 0 }}>
-                เกณฑ์ระดับความเสี่ยงและคำแนะนำทางการแพทย์ (Clinical Interpretation)
-              </h3>
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#64748b', background: '#f1f5f9', padding: '4px 10px', borderRadius: 6 }}>
-                มาตรฐานการประเมิน
-              </span>
-            </div>
-
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                <thead>
-                  <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
-                    <th style={{ padding: '12px 14px', fontWeight: 800, color: '#334155' }}>ระดับความเสี่ยง (Risk Category)</th>
-                    <th style={{ padding: '12px 14px', fontWeight: 800, color: '#334155' }}>เปอร์เซ็นต์ความเสี่ยง</th>
-                    <th style={{ padding: '12px 14px', fontWeight: 800, color: '#334155' }}>คำแนะนำทางการแพทย์ (Clinical Interpretation)</th>
-                    <th style={{ padding: '12px 14px', fontWeight: 800, color: '#334155', textAlign: 'center' }}>การแสดงผลสี</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    {
-                      name: 'ความเสี่ยงต่ำ (Low Risk)',
-                      range: 'น้อยกว่า 5%',
-                      advice: 'เน้นการดูแลสุขภาพพื้นฐาน ป้องกันไม่ให้เกิดปัจจัยเสี่ยง',
-                      colorName: 'สีเขียว',
-                      color: '#16a34a',
-                      bg: '#f0fdf4',
-                      border: '#bbf7d0',
-                    },
-                    {
-                      name: 'ความเสี่ยงคาบเกี่ยว (Borderline)',
-                      range: '5% - 7.4%',
-                      advice: 'เริ่มมีความเสี่ยง ควรเริ่มปรับเปลี่ยนพฤติกรรมการใช้ชีวิต',
-                      colorName: 'สีเหลืองอ่อน',
-                      color: '#ca8a04',
-                      bg: '#fefce8',
-                      border: '#fef08a',
-                    },
-                    {
-                      name: 'ความเสี่ยงปานกลาง (Intermediate)',
-                      range: '7.5% - 19.9%',
-                      advice: 'ควรพบแพทย์เพื่อพิจารณาควบคุมความดันและปัจจัยเสี่ยงอื่นๆ',
-                      colorName: 'สีเหลือง / ส้ม',
-                      color: '#ea580c',
-                      bg: '#fff7ed',
-                      border: '#fed7aa',
-                    },
-                    {
-                      name: 'ความเสี่ยงสูง (High Risk)',
-                      range: '20% ขึ้นไป',
-                      advice: 'มีความเสี่ยงอันตราย ต้องอยู่ในการดูแลของแพทย์และพิจารณาให้ยา',
-                      colorName: 'สีแดง',
-                      color: '#dc2626',
-                      bg: '#fef2f2',
-                      border: '#fecaca',
-                    }
-                  ].map((tier, idx) => (
-                    <tr 
-                      key={idx} 
-                      style={{ 
-                        background: '#ffffff',
-                        borderBottom: '1px solid #eef3f6',
-                        borderLeft: `5px solid ${tier.color}`,
-                        transition: 'background 0.2s ease'
-                      }}
-                    >
-                      <td style={{ padding: '12px 14px', fontWeight: 700, color: tier.color }}>
-                        {tier.name}
-                      </td>
-                      <td style={{ padding: '12px 14px', fontWeight: 600, color: '#475569' }}>
-                        {tier.range}
-                      </td>
-                      <td style={{ padding: '12px 14px', color: '#334155', lineHeight: 1.5, fontWeight: 500 }}>
-                        {tier.advice}
-                      </td>
-                      <td style={{ padding: '12px 14px', textAlign: 'center' }}>
-                        <span style={{ 
-                          display: 'inline-block',
-                          padding: '4px 10px', 
-                          borderRadius: 6, 
-                          background: tier.bg, 
-                          color: tier.color, 
-                          fontWeight: 800, 
-                          fontSize: 12,
-                          border: `1px solid ${tier.border}`
-                        }}>
-                          {tier.colorName}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           </div>
         </div>
@@ -1163,12 +1173,8 @@ function DiseaseInfoView() {
               </div>
             </div>
 
-            <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.7, marginBottom: 18 }}>
-              <strong>โรคหลอดเลือดสมอง (Stroke)</strong> คือ โรคที่มีอาการผิดปกติทางระบบประสาทอย่างเฉียบพลันที่เกิดจากหลอดเลือดสมอง ได้แก่ แขนขาอ่อนแรงครึ่งซีก ปากเบี้ยว พูดไม่ชัด วิงเวียนศีรษะหรือเดินเซ หมดสติ
-            </p>
-
             {/* การตรวจวินิจฉัย */}
-            <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 12, padding: '16px 20px', marginBottom: 20 }}>
+            <div style={{ marginBottom: 20 }}>
               <h4 style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
                 การตรวจวินิจฉัยยืนยันโรค
               </h4>
@@ -1183,7 +1189,7 @@ function DiseaseInfoView() {
             </h4>
 
             {/* วิธีที่ 1: ยาสลายลิ่มเลือด rt-PA */}
-            <div style={{ background: '#ffffff', borderRadius: 14, padding: 22, border: '1.5px solid #e2e8f0', marginBottom: 18, boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+            <div style={{ marginBottom: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <h5 style={{ fontSize: 16, fontWeight: 900, color: '#1e40af', margin: 0 }}>
                   วิธีที่ 1: การให้ “ยาสลายลิ่มเลือด” (rt-PA) ทางหลอดเลือดดำ
@@ -1236,7 +1242,7 @@ function DiseaseInfoView() {
             </div>
 
             {/* วิธีที่ 2: Mechanical Thrombectomy */}
-            <div style={{ background: '#ffffff', borderRadius: 14, padding: 22, border: '1.5px solid #e2e8f0', marginBottom: 18, boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+            <div style={{ marginBottom: 24 }}>
               <h5 style={{ fontSize: 16, fontWeight: 900, color: '#0f766e', margin: '0 0 10px' }}>
                 วิธีที่ 2: การใส่สายสวนเพื่อเปิดหลอดเลือด (Mechanical Thrombectomy)
               </h5>
