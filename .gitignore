@@ -8,3 +8,5 @@ dist/
 staticfiles/
 *.sqlite3
 
+
+frontend/.env
