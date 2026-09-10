@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,12 +21,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-sq8fcy&7!8e!=*d)9j+=qec*i&+yl-*8wg=xu^*p=swtynk@s0'
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-sq8fcy&7!8e!=*d)9j+=qec*i&+yl-*8wg=xu^*p=swtynk@s0'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# ค่าเริ่มต้นบนเครื่องตัวเองเป็น True (เห็น Error ชัดเจน), บน Production ให้ตั้ง DEBUG=False ใน Environment Variables
+DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 't', 'yes')
 
-ALLOWED_HOSTS = ['*']
+# Allowed Hosts
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get('ALLOWED_HOSTS', '*').split(',')
+    if host.strip()
+]
 
 
 # Application definition
@@ -46,6 +56,7 @@ AUTH_USER_MODEL = "accounts.User"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -81,11 +92,11 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "wstroke_db",
-        "USER": "root",
-        "PASSWORD": "123456",
-        "HOST": "localhost",
-        "PORT": "3306",
+        "NAME": os.environ.get("DB_NAME") or os.environ.get("MYSQLDATABASE", "wstroke_db"),
+        "USER": os.environ.get("DB_USER") or os.environ.get("MYSQLUSER", "root"),
+        "PASSWORD": os.environ.get("DB_PASSWORD") or os.environ.get("MYSQLPASSWORD", "123456"),
+        "HOST": os.environ.get("DB_HOST") or os.environ.get("MYSQLHOST", "localhost"),
+        "PORT": os.environ.get("DB_PORT") or os.environ.get("MYSQLPORT", "3306"),
     }
 }
 
@@ -124,9 +135,48 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS & CSRF Settings
+CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'False').lower() in ('true', '1', 't', 'yes')
+
+cors_origins = os.environ.get('CORS_ALLOWED_ORIGINS', '')
+if cors_origins:
+    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',') if origin.strip()]
+elif CORS_ALLOW_ALL_ORIGINS:
+    CORS_ALLOWED_ORIGINS = []
+else:
+    # Default allowed origins for local dev
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
+
 CORS_ALLOW_CREDENTIALS = True
-SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SECURE = False
+
+# CSRF Trusted Origins (needed for Django cross-domain POST)
+csrf_trusted = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+if csrf_trusted:
+    CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_trusted.split(',') if origin.strip()]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
+
+# Session & Cookie Settings (Cross-Site support for separate Frontend & Backend deployments)
+IS_PRODUCTION = not DEBUG
+
+SESSION_COOKIE_SAMESITE = 'None' if IS_PRODUCTION else 'Lax'
+SESSION_COOKIE_SECURE = True if IS_PRODUCTION else False
+CSRF_COOKIE_SAMESITE = 'None' if IS_PRODUCTION else 'Lax'
+CSRF_COOKIE_SECURE = True if IS_PRODUCTION else False
