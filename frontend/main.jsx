@@ -497,6 +497,7 @@ function DashboardView({ onNavigatePredict }) {
   const [loading, setLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [chartType, setChartType] = useState('donut');
+  const [statTab, setStatTab] = useState('total');
 
   useEffect(() => {
     fetch(`${API}/api/dashboard-stats/`, { credentials: 'include' })
@@ -535,17 +536,26 @@ function DashboardView({ onNavigatePredict }) {
   return (
     <div>
       {/* Hero Action Banner */}
-      <div className="hero-band" style={{ marginBottom: 24 }}>
+      <div className="hero-band" style={{ marginBottom: 24, padding: '28px 36px', borderRadius: 16 }}>
         <div>
-          <span className="eyebrow">StrokeRP SYSTEM</span>
-          <h2>แผงควบคุมและสถิติภาพรวม (Dashboard)</h2>
-          <p>ระบบวิเคราะห์ข้อมูลพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง</p>
-          <div style={{ marginTop: 14 }}>
+          <span style={{ fontSize: 16, fontWeight: 700, color: 'rgba(255, 255, 255, 0.9)', display: 'block', marginBottom: 6 }}>
+            ยินดีต้อนรับสู่
+          </span>
+          <h2 style={{ fontSize: 28, fontWeight: 900, color: '#ffffff', letterSpacing: '0.5px', margin: '0 0 10px 0' }}>
+            STROKE RISK PREDICTION
+          </h2>
+          <div style={{ fontSize: 15, fontWeight: 700, color: '#ffffff', marginBottom: 4 }}>
+            ระบบพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง
+          </div>
+          <div style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.75)', marginBottom: 18 }}>
+            ประเมินความเสี่ยงจากข้อมูลสุขภาพของผู้ป่วย
+          </div>
+          <div>
             <button
               className="primary-button"
               style={{
                 width: 'auto',
-                padding: '9px 20px',
+                padding: '10px 22px',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 8,
@@ -553,99 +563,158 @@ function DashboardView({ onNavigatePredict }) {
                 color: '#fff',
                 fontSize: 13,
                 fontWeight: 700,
-                borderRadius: 8
+                borderRadius: 50,
+                boxShadow: '0 4px 14px rgba(24, 119, 242, 0.4)'
               }}
               onClick={onNavigatePredict}
             >
-              <ClipboardCheck size={16} /> เริ่มพยากรณ์โรค <ArrowRight size={14} />
+              <ClipboardCheck size={16} /> เริ่มการพยากรณ์ <ArrowRight size={14} />
             </button>
           </div>
         </div>
         <div className="hero-illustration">
-          <Activity size={44} />
-          <Brain size={44} />
+          <Activity size={48} />
+          <Brain size={48} />
         </div>
       </div>
 
-      {/* Top Stat Cards Grid matching screenshot exactly */}
-      <div className="grid-3" style={{ marginBottom: 24 }}>
-        {/* Card 1: Total predictions */}
-        <div className="dash-stat-blue">
-          <div className="stat-title">จำนวนครั้งที่พยากรณ์</div>
-          <div className="dash-stat-val">{formatNum(total)}</div>
-          <div className="dash-stat-unit">ครั้ง</div>
+      {/* Top Stat Cards Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 20 }}>
+        {/* Card 1: ผู้ป่วยในประเทศไทย */}
+        <div className="feature-card" style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontSize: 13, fontWeight: 800, color: '#475569' }}>ผู้ป่วยโรคหลอดเลือดสมองในประเทศไทย</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#0284c7', background: '#e0f2fe', padding: '2px 8px', borderRadius: 6 }}>ระดับประเทศ</span>
+          </div>
+          <div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: '#0284c7', lineHeight: 1.2 }}>363,688</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginTop: 4 }}>ราย</div>
+          </div>
         </div>
 
-        {/* Card 2: High Risk */}
-        <div className="dash-stat-red">
-          <div className="stat-title">จำนวนผู้ป่วยเสี่ยงสูง</div>
-          <div className="dash-stat-val">{formatNum(highRiskCount)}</div>
-          <div className="dash-stat-unit">คน</div>
+        {/* Card 2: ผู้ป่วยในจังหวัดนราธิวาส */}
+        <div className="feature-card" style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontSize: 13, fontWeight: 800, color: '#475569' }}>ผู้ป่วยโรคหลอดเลือดสมองในจังหวัดนราธิวาส</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#d97706', background: '#fef3c7', padding: '2px 8px', borderRadius: 6 }}>ระดับจังหวัด</span>
+          </div>
+          <div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: '#d97706', lineHeight: 1.2 }}>1,861</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginTop: 4 }}>ราย</div>
+          </div>
         </div>
 
-        {/* Card 3: สัดส่วนประเภทโรค with chart type switcher */}
-        <div className="feature-card" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 180 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 6 }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a' }}>
-              สัดส่วนประเภทโรค
-            </div>
-            
-            {/* Chart Type Selector */}
-            <div style={{ display: 'inline-flex', background: '#f1f5f9', borderRadius: 8, padding: 2, gap: 2 }}>
+        {/* Combined Card 3 & 4: สถิติการพยากรณ์และผู้ป่วยเสี่ยงสูง (เลือกสลับได้) */}
+        <div className="feature-card" style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 6 }}>
+            <span style={{ fontSize: 13, fontWeight: 800, color: '#475569' }}>
+              {statTab === 'total' ? 'จำนวนครั้งที่พยากรณ์' : 'จำนวนผู้ป่วยเสี่ยงสูง'}
+            </span>
+            <div style={{ display: 'inline-flex', background: '#f1f5f9', borderRadius: 8, padding: 3, gap: 2 }}>
               {[
-                { id: 'donut', label: 'Donut' },
-                { id: 'bar', label: 'Bar' },
-                { id: 'line', label: 'Line' },
-              ].map(ct => (
+                { id: 'total', label: 'ครั้งที่พยากรณ์' },
+                { id: 'risk', label: 'เสี่ยงสูง' }
+              ].map(tab => (
                 <button
-                  key={ct.id}
-                  onClick={() => setChartType(ct.id)}
+                  key={tab.id}
+                  onClick={() => setStatTab(tab.id)}
                   style={{
                     border: 'none',
-                    padding: '3px 8px',
+                    padding: '3px 10px',
                     borderRadius: 6,
                     fontSize: 11,
-                    fontWeight: chartType === ct.id ? 800 : 600,
-                    background: chartType === ct.id ? '#ffffff' : 'transparent',
-                    color: chartType === ct.id ? '#1877f2' : '#64748b',
-                    boxShadow: chartType === ct.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                    fontWeight: statTab === tab.id ? 800 : 600,
+                    background: statTab === tab.id ? '#ffffff' : 'transparent',
+                    color: statTab === tab.id ? (tab.id === 'risk' ? '#dc2626' : '#1877f2') : '#64748b',
+                    boxShadow: statTab === tab.id ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  {ct.label}
+                  {tab.label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Chart Display Area */}
-          {chartType === 'donut' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <DonutChart data={donutData} size={110} />
-              <div style={{ flex: 1 }}>
-                {donutData.map((d, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 11 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: d.color, flexShrink: 0 }} />
-                    <span style={{ fontWeight: 600, color: '#475569' }}>{d.label} ({d.pct}%)</span>
-                  </div>
-                ))}
-              </div>
+          {/* Tab Content Display */}
+          {statTab === 'total' ? (
+            <div>
+              <div style={{ fontSize: 26, fontWeight: 900, color: '#1877f2', lineHeight: 1.2 }}>{formatNum(total)}</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginTop: 4 }}>ครั้ง</div>
             </div>
-          )}
-
-          {chartType === 'bar' && (
-            <div style={{ width: '100%', height: 115 }}>
-              <BarChart data={barData} height={80} compact />
-            </div>
-          )}
-
-          {chartType === 'line' && (
-            <div style={{ width: '100%', height: 115 }}>
-              <LineChart data={barData} height={105} />
+          ) : (
+            <div>
+              <div style={{ fontSize: 26, fontWeight: 900, color: '#dc2626', lineHeight: 1.2 }}>{formatNum(highRiskCount)}</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginTop: 4 }}>คน</div>
             </div>
           )}
         </div>
+      </div>
+
+      {/* สัดส่วนประเภทโรค with chart type switcher */}
+      <div className="feature-card" style={{ padding: '20px 24px', marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', margin: 0 }}>
+            สัดส่วนประเภทโรค
+          </h3>
+          
+          {/* Chart Type Selector */}
+          <div style={{ display: 'inline-flex', background: '#f1f5f9', borderRadius: 8, padding: 3, gap: 3 }}>
+            {[
+              { id: 'donut', label: 'Donut' },
+              { id: 'bar', label: 'Bar' },
+              { id: 'line', label: 'Line' },
+            ].map(ct => (
+              <button
+                key={ct.id}
+                onClick={() => setChartType(ct.id)}
+                style={{
+                  border: 'none',
+                  padding: '4px 12px',
+                  borderRadius: 6,
+                  fontSize: 12,
+                  fontWeight: chartType === ct.id ? 800 : 600,
+                  background: chartType === ct.id ? '#ffffff' : 'transparent',
+                  color: chartType === ct.id ? '#1877f2' : '#64748b',
+                  boxShadow: chartType === ct.id ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                {ct.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Chart Display Area */}
+        {chartType === 'donut' && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 28, flexWrap: 'wrap', padding: '6px 0' }}>
+            <DonutChart data={donutData} size={130} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {donutData.map((d, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: d.color, flexShrink: 0 }} />
+                  <span style={{ fontWeight: 600, color: '#475569' }}>{d.label}</span>
+                  <span style={{ fontWeight: 700, color: '#334155' }}>({d.pct}%)</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {chartType === 'bar' && (
+          <div style={{ width: '100%', height: 150, padding: '6px 0' }}>
+            <BarChart data={barData} height={110} />
+          </div>
+        )}
+
+        {chartType === 'line' && (
+          <div style={{ width: '100%', height: 150, padding: '6px 0' }}>
+            <LineChart data={barData} height={120} />
+          </div>
+        )}
       </div>
 
       {/* Recent Predictions Activity Section */}
