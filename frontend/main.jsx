@@ -860,15 +860,15 @@ function DashboardView({ onNavigatePredict }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {selectedPatient.is_high_risk ? <AlertTriangle size={22} color="#dc2626" /> : <CheckCircle2 size={22} color="#16a34a" />}
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b' }}>ผลการวินิจฉัยจาก AI</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b' }}>ผลการพยากรณ์ความเสี่ยง</div>
                   <div style={{ fontSize: 15, fontWeight: 900, color: selectedPatient.is_high_risk ? '#dc2626' : '#16a34a' }}>
                     {selectedPatient.stroke_type_full}
                   </div>
                 </div>
               </div>
               {selectedPatient.confidence && (
-                <span style={{ fontSize: 13, fontWeight: 800, background: '#ffffff', padding: '4px 10px', borderRadius: 8, border: `1px solid ${selectedPatient.is_high_risk ? '#fecaca' : '#bbf7d0'}`, color: selectedPatient.is_high_risk ? '#dc2626' : '#16a34a' }}>
-                  ความมั่นใจ {selectedPatient.confidence}%
+                <span style={{ fontSize: 14, fontWeight: 900, color: selectedPatient.is_high_risk ? '#dc2626' : '#16a34a' }}>
+                  {selectedPatient.confidence}%
                 </span>
               )}
             </div>
@@ -955,7 +955,7 @@ function DiseaseInfoView() {
           <h2>เกี่ยวกับโรคหลอดเลือดสมอง (Stroke)</h2>
           <p style={{ fontWeight: 700, fontSize: 16, color: '#1877f2', marginBottom: 4 }}>คู่มือความรู้และการดูแลรักษาทางการแพทย์</p>
           <p style={{ maxWidth: 820, lineHeight: 1.6 }}>
-            รวบรวมข้อมูลสำคัญเกี่ยวกับโรคหลอดเลือดสมอง ชนิดของโรค อาการเตือน BEFAST เคล็ดลับการป้องกัน และแนวทางการรักษาแบบครบวงจร
+            รวบรวมข้อมูลสำคัญเกี่ยวกับโรคหลอดเลือดสมอง ชนิดของโรค อาการเตือน BEFAST เคล็ดลับการป้องกัน และแนวทางการรักษา
           </p>
         </div>
         <div className="hero-illustration">
