@@ -522,12 +522,12 @@ function DashboardView({ onNavigatePredict }) {
 
   const donutData = [
     { label: 'ปกติ (No Stroke)', value: noStroke, color: '#27ae60', pct: noStrokePct },
-    { label: 'หลอดเลือดสมองตีบ (Ischemic Stroke)', value: ischemic, color: '#ff9800', pct: ischemicPct },
+    { label: 'หลอดเลือดสมองตีบหรืออุดตัน (Ischemic Stroke)', value: ischemic, color: '#ff9800', pct: ischemicPct },
     { label: 'หลอดเลือดสมองแตก (Hemorrhagic Stroke)', value: hemorrhagic, color: '#e74c3c', pct: hemorrhagicPct },
   ];
   const barData = [
     { label: 'ปกติ (No Stroke)', value: noStroke, color: '#27ae60' },
-    { label: 'หลอดเลือดสมองตีบ (Ischemic Stroke)', value: ischemic, color: '#ff9800' },
+    { label: 'หลอดเลือดสมองตีบหรืออุดตัน (Ischemic Stroke)', value: ischemic, color: '#ff9800' },
     { label: 'หลอดเลือดสมองแตก (Hemorrhagic Stroke)', value: hemorrhagic, color: '#e74c3c' },
   ];
 
@@ -741,7 +741,7 @@ function DashboardView({ onNavigatePredict }) {
               <tbody>
                 {(stats?.recent_predictions || [
                   { id: 1, date_short: '24 ส.ค.', time_str: '14:20 น.', patient_id: 'HN-001', result_label: 'ปกติ', is_high_risk: false, gender: 'หญิง', age: 45, systolic_bp: 120, diastolic_bp: 80, blood_sugar: 95, cholesterol: 175, bmi: 21.5, confidence: 92.4, has_diabetes: false, has_hypertension: false, has_dyslipidemia: false, ekg_result: false, symptoms: [], stroke_type_full: 'ปกติ (No Stroke)' },
-                  { id: 2, date_short: '24 ส.ค.', time_str: '11:05 น.', patient_id: 'HN-002', result_label: 'เสี่ยงสูง', is_high_risk: true, gender: 'ชาย', age: 68, systolic_bp: 165, diastolic_bp: 98, blood_sugar: 180, cholesterol: 240, bmi: 28.4, confidence: 88.6, has_diabetes: true, has_hypertension: true, has_dyslipidemia: true, ekg_result: true, symptoms: ['แขนขาอ่อนแรง', 'พูดไม่ชัด'], stroke_type_full: 'โรคหลอดเลือดสมองตีบ (Ischemic Stroke)' },
+                  { id: 2, date_short: '24 ส.ค.', time_str: '11:05 น.', patient_id: 'HN-002', result_label: 'เสี่ยงสูง', is_high_risk: true, gender: 'ชาย', age: 68, systolic_bp: 165, diastolic_bp: 98, blood_sugar: 180, cholesterol: 240, bmi: 28.4, confidence: 88.6, has_diabetes: true, has_hypertension: true, has_dyslipidemia: true, ekg_result: true, symptoms: ['แขนขาอ่อนแรง', 'พูดไม่ชัด'], stroke_type_full: 'โรคหลอดเลือดสมองตีบหรืออุดตัน (Ischemic Stroke)' },
                   { id: 3, date_short: '23 ส.ค.', time_str: '16:45 น.', patient_id: 'HN-003', result_label: 'ปกติ', is_high_risk: false, gender: 'หญิง', age: 52, systolic_bp: 128, diastolic_bp: 82, blood_sugar: 105, cholesterol: 190, bmi: 23.1, confidence: 90.1, has_diabetes: false, has_hypertension: false, has_dyslipidemia: false, ekg_result: false, symptoms: [], stroke_type_full: 'ปกติ (No Stroke)' },
                   { id: 4, date_short: '23 ส.ค.', time_str: '09:15 น.', patient_id: 'HN-004', result_label: 'เสี่ยงสูง', is_high_risk: true, gender: 'ชาย', age: 72, systolic_bp: 185, diastolic_bp: 110, blood_sugar: 145, cholesterol: 220, bmi: 26.8, confidence: 84.5, has_diabetes: false, has_hypertension: true, has_dyslipidemia: false, ekg_result: false, symptoms: ['ปวดศีรษะเฉียบพลัน', 'วิงเวียน/เสียการทรงตัว'], stroke_type_full: 'โรคหลอดเลือดสมองแตก (Hemorrhagic Stroke)' },
                   { id: 5, date_short: '22 ส.ค.', time_str: '13:30 น.', patient_id: 'HN-005', result_label: 'ปกติ', is_high_risk: false, gender: 'ชาย', age: 38, systolic_bp: 118, diastolic_bp: 78, blood_sugar: 90, cholesterol: 160, bmi: 22.0, confidence: 96.0, has_diabetes: false, has_hypertension: false, has_dyslipidemia: false, ekg_result: false, symptoms: [], stroke_type_full: 'ปกติ (No Stroke)' },
@@ -754,39 +754,60 @@ function DashboardView({ onNavigatePredict }) {
                     <td style={{ padding: '10px 12px', fontWeight: 800, color: '#1877f2' }}>
                       {row.patient_id}
                     </td>
-                    <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                    <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                       <span style={{
-                        display: 'inline-block',
-                        padding: '3px 10px',
-                        borderRadius: 6,
-                        fontWeight: 800,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        padding: '4px 12px',
+                        borderRadius: 20,
+                        fontWeight: 700,
                         fontSize: 12,
-                        background: row.is_high_risk ? '#fef2f2' : '#f0fdf4',
-                        color: row.is_high_risk ? '#dc2626' : '#16a34a',
-                        border: `1px solid ${row.is_high_risk ? '#fecaca' : '#bbf7d0'}`
+                        background: row.is_high_risk ? '#fff1f2' : '#f0fdf4',
+                        color: row.is_high_risk ? '#e11d48' : '#16a34a',
+                        boxShadow: `0 1px 2px ${row.is_high_risk ? 'rgba(225, 29, 72, 0.08)' : 'rgba(22, 163, 74, 0.08)'}`
                       }}>
+                        <span style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: '50%',
+                          background: row.is_high_risk ? '#e11d48' : '#16a34a'
+                        }} />
                         {row.result_label}
                       </span>
                     </td>
-                    <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                    <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                       <button
                         onClick={() => setSelectedPatient(row)}
                         style={{
-                          background: '#eff6ff',
-                          color: '#2563eb',
-                          border: '1px solid #bfdbfe',
-                          borderRadius: 6,
-                          padding: '4px 10px',
+                          background: '#f0f7ff',
+                          color: '#1d4ed8',
+                          border: 'none',
+                          borderRadius: 20,
+                          padding: '5px 14px',
                           fontSize: 12,
                           fontWeight: 700,
                           cursor: 'pointer',
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: 4,
-                          transition: 'all 0.2s ease'
+                          gap: 6,
+                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          boxShadow: '0 1px 3px rgba(29, 78, 216, 0.08)'
+                        }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.background = '#1d4ed8';
+                          e.currentTarget.style.color = '#ffffff';
+                          e.currentTarget.style.transform = 'translateY(-1px)';
+                          e.currentTarget.style.boxShadow = '0 3px 8px rgba(29, 78, 216, 0.25)';
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.background = '#f0f7ff';
+                          e.currentTarget.style.color = '#1d4ed8';
+                          e.currentTarget.style.transform = 'none';
+                          e.currentTarget.style.boxShadow = '0 1px 3px rgba(29, 78, 216, 0.08)';
                         }}
                       >
-                        <Eye size={12} /> ดูรายละเอียด
+                        <Eye size={13} /> ดูรายละเอียด
                       </button>
                     </td>
                   </tr>
@@ -1274,32 +1295,32 @@ function DiseaseInfoView() {
               <div style={{ overflowX: 'auto', marginBottom: 14 }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
-                    <tr style={{ background: '#eff6ff', borderBottom: '2px solid #bfdbfe' }}>
-                      <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 800, color: '#1e3a8a' }}>ข้อดี / ประสิทธิภาพและการประเมิน</th>
-                      <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 800, color: '#15803d' }}>ได้รับยา rt-PA</th>
-                      <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 800, color: '#dc2626' }}>ไม่ได้รับยา</th>
+                    <tr style={{ background: '#f0f7ff' }}>
+                      <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: 800, color: '#1e3a8a' }}>ข้อดี / ประสิทธิภาพและการประเมิน</th>
+                      <th style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 800, color: '#15803d' }}>ได้รับยา rt-PA</th>
+                      <th style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 800, color: '#dc2626' }}>ไม่ได้รับยา</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr style={{ borderBottom: '1px solid #eef3f6' }}>
-                      <td style={{ padding: '10px 12px', fontWeight: 700, color: '#1e293b' }}>ความพิการน้อยลงจนแทบไม่มี</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 900, color: '#15803d', background: '#f0fdf4' }}>43 %</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: '#64748b' }}>26 %</td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid #eef3f6' }}>
-                      <td style={{ padding: '10px 12px', fontWeight: 700, color: '#1e293b' }}>มีความพิการและต้องมีคนดูแล</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: '#15803d', background: '#f0fdf4' }}>40 %</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 900, color: '#dc2626' }}>53 %</td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid #eef3f6' }}>
-                      <td style={{ padding: '10px 12px', fontWeight: 700, color: '#1e293b' }}>โอกาสเลือดออกในสมอง</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: '#ca8a04', background: '#fefce8' }}>7 %</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: '#64748b' }}>0.6 %</td>
+                    <tr>
+                      <td style={{ padding: '12px 14px', fontWeight: 700, color: '#1e293b' }}>ความพิการน้อยลงจนแทบไม่มี</td>
+                      <td style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 900, color: '#15803d', background: '#f0fdf4' }}>43 %</td>
+                      <td style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 700, color: '#64748b' }}>26 %</td>
                     </tr>
                     <tr>
-                      <td style={{ padding: '10px 12px', fontWeight: 700, color: '#1e293b' }}>โอกาสเสียชีวิต</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: '#15803d', background: '#f0fdf4' }}>17 %</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: '#dc2626' }}>21 %</td>
+                      <td style={{ padding: '12px 14px', fontWeight: 700, color: '#1e293b' }}>มีความพิการและต้องมีคนดูแล</td>
+                      <td style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 700, color: '#15803d', background: '#f0fdf4' }}>40 %</td>
+                      <td style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 900, color: '#dc2626' }}>53 %</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '12px 14px', fontWeight: 700, color: '#1e293b' }}>โอกาสเสียชีวิต</td>
+                      <td style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 700, color: '#15803d', background: '#f0fdf4' }}>17 %</td>
+                      <td style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 700, color: '#dc2626' }}>21 %</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '12px 14px', fontWeight: 700, color: '#1e293b' }}>โอกาสเลือดออกในสมอง</td>
+                      <td style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 700, color: '#ca8a04', background: '#fefce8' }}>7 %</td>
+                      <td style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 700, color: '#64748b' }}>0.6 %</td>
                     </tr>
                   </tbody>
                 </table>
@@ -1320,24 +1341,24 @@ function DiseaseInfoView() {
               </p>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
-                <div style={{ background: '#f0fdfa', border: '1.5px solid #ccfbf1', padding: '14px 16px', borderRadius: 10, textAlign: 'center' }}>
+                <div style={{ background: '#f0fdfa', padding: '16px 18px', borderRadius: 10, textAlign: 'center' }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#0f766e' }}>โอกาสเปิดหลอดเลือดสำเร็จ</div>
-                  <div style={{ fontSize: 24, fontWeight: 900, color: '#0d9488', marginTop: 4 }}>80 %</div>
+                  <div style={{ fontSize: 26, fontWeight: 900, color: '#0d9488', marginTop: 4 }}>80 %</div>
                 </div>
-                <div style={{ background: '#f0fdfa', border: '1.5px solid #ccfbf1', padding: '14px 16px', borderRadius: 10, textAlign: 'center' }}>
+                <div style={{ background: '#f0fdfa', padding: '16px 18px', borderRadius: 10, textAlign: 'center' }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#0f766e' }}>กลับมาใช้ชีวิตได้ปกติ</div>
-                  <div style={{ fontSize: 24, fontWeight: 900, color: '#059669', marginTop: 4 }}>50 - 60 %</div>
+                  <div style={{ fontSize: 26, fontWeight: 900, color: '#059669', marginTop: 4 }}>50 - 60 %</div>
                 </div>
               </div>
 
-              <div style={{ background: '#fffbeb', padding: '10px 14px', borderRadius: 8, fontSize: 12, color: '#92400e' }}>
+              <div style={{ background: '#fffbeb', padding: '12px 16px', borderRadius: 8, fontSize: 12, color: '#92400e' }}>
                 <strong>ภาวะแทรกซ้อนที่อาจพบ:</strong> หลอดเลือดฉีกขาดหรือมีเลือดออกจากสมองน้อยกว่า 5%
               </div>
             </div>
 
             {/* กรณีโรคหลอดเลือดสมองแตก หรือ ไม่เลือกรับ 2 วิธีแรก */}
             <div className="grid-2" style={{ gap: 14 }}>
-              <div style={{ background: '#fef2f2', border: '1.5px solid #fecaca', padding: '16px 18px', borderRadius: 12 }}>
+              <div style={{ background: '#fef2f2', padding: '18px 20px', borderRadius: 12 }}>
                 <h5 style={{ fontSize: 14, fontWeight: 800, color: '#991b1b', margin: '0 0 6px' }}>
                   กรณีโรคหลอดเลือดสมองแตก
                 </h5>
@@ -1346,7 +1367,7 @@ function DiseaseInfoView() {
                 </p>
               </div>
 
-              <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', padding: '16px 18px', borderRadius: 12 }}>
+              <div style={{ background: '#f8fafc', padding: '18px 20px', borderRadius: 12 }}>
                 <h5 style={{ fontSize: 14, fontWeight: 800, color: '#334155', margin: '0 0 6px' }}>
                   การรักษาตามอาการและการฟื้นฟู
                 </h5>
@@ -1651,7 +1672,7 @@ function ResultView({ result, form, onReset }) {
 
   const labelMap = { 
     'No_Stroke': 'ปกติ (No Stroke)', 
-    'Ischemic': 'โรคหลอดเลือดสมองตีบ (Ischemic Stroke)', 
+    'Ischemic': 'โรคหลอดเลือดสมองตีบหรืออุดตัน (Ischemic Stroke)', 
     'Hemorrhagic': 'โรคหลอดเลือดสมองแตก (Hemorrhagic Stroke)' 
   };
   const colorMap = { 'No_Stroke': '#16a34a', 'Ischemic': '#ea580c', 'Hemorrhagic': '#dc2626' };
@@ -1749,9 +1770,12 @@ function ResultView({ result, form, onReset }) {
       <div className="feature-card" style={{ marginBottom: 20, padding: '28px 36px' }}>
         <div style={{ textAlign: 'center', padding: '10px 0 24px', borderBottom: '1px solid #eef3f6', marginBottom: 20 }}>
           
-          {/* Disease Title (ตรงกลาง - แสดงเปอร์เซ็นต์ของผลพยากรณ์หลัก) */}
-          <div style={{ fontSize: 34, fontWeight: 900, color: getTierColorByPercent(pred, probs[pred]), marginBottom: 8, letterSpacing: '-0.5px' }}>
-            {labelMap[pred] || pred} {probs[pred] !== undefined ? `(${Number(probs[pred]).toFixed(1)}%)` : ''}
+          {/* Disease Title (ตรงกลาง - แสดงข้อความความเสี่ยงเต็มรูปแบบและเปอร์เซ็นต์) */}
+          <div style={{ fontSize: 26, fontWeight: 900, color: getTierColorByPercent(pred, probs[pred]), marginBottom: 8, letterSpacing: '-0.3px', lineHeight: 1.4 }}>
+            {pred === 'Ischemic' && `มีความเสี่ยงสูงต่อโรคหลอดเลือดสมองตีบหรืออุดตัน (Ischemic Stroke)${probs[pred] !== undefined ? ` — ${Number(probs[pred]).toFixed(1)}%` : ''}`}
+            {pred === 'Hemorrhagic' && `มีความเสี่ยงสูงต่อโรคหลอดเลือดสมองแตก (Hemorrhagic Stroke)${probs[pred] !== undefined ? ` — ${Number(probs[pred]).toFixed(1)}%` : ''}`}
+            {pred === 'No_Stroke' && `ปกติ ไม่มีความเสี่ยงต่อโรคหลอดเลือดสมอง (No Stroke)${probs[pred] !== undefined ? ` — ${Number(probs[pred]).toFixed(1)}%` : ''}`}
+            {!['Ischemic', 'Hemorrhagic', 'No_Stroke'].includes(pred) && `${labelMap[pred] || pred} ${probs[pred] !== undefined ? `— ${Number(probs[pred]).toFixed(1)}%` : ''}`}
           </div>
           <div style={{ fontSize: 14, color: '#64748b', fontWeight: 600 }}>ผลการพยากรณ์จาก Random Forest Model</div>
         </div>
@@ -2100,7 +2124,7 @@ function DatasetView() {
   const strokeTypeBadge = (s) => {
     const map = { 
       'No_Stroke': { type: 'no-stroke', label: 'ปกติ (No Stroke)' }, 
-      'Ischemic': { type: 'ischemic', label: 'หลอดเลือดสมองตีบ (Ischemic Stroke)' }, 
+      'Ischemic': { type: 'ischemic', label: 'หลอดเลือดสมองตีบหรืออุดตัน (Ischemic Stroke)' }, 
       'Hemorrhagic': { type: 'hemorrhagic', label: 'หลอดเลือดสมองแตก (Hemorrhagic Stroke)' } 
     };
     const m = map[s] || { type: 'no-stroke', label: s };

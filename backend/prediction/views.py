@@ -350,7 +350,7 @@ def dashboard_stats(request):
                 'predicted_stroke_type': p.predicted_stroke_type,
                 'stroke_type_full': (
                     'ปกติ (No Stroke)' if p.predicted_stroke_type == 'No_Stroke'
-                    else 'โรคหลอดเลือดสมองตีบ (Ischemic Stroke)' if p.predicted_stroke_type == 'Ischemic'
+                    else 'โรคหลอดเลือดสมองตีบหรืออุดตัน (Ischemic Stroke)' if p.predicted_stroke_type == 'Ischemic'
                     else 'โรคหลอดเลือดสมองแตก (Hemorrhagic Stroke)'
                 ),
                 'confidence': float(p.confidence) if p.confidence else 85.0,
