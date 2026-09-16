@@ -65,6 +65,153 @@ const blankForm = {
   has_diabetes: false, has_hypertension: false, has_dyslipidemia: false,
 };
 
+/* ===================== LOGO COMPONENT ===================== */
+let transparentLogoCache = null;
+
+function StrokeLogo({ size = 44, className = '', style = {} }) {
+  const [logoSrc, setLogoSrc] = useState(transparentLogoCache || '/stroke-logo.png');
+
+  useEffect(() => {
+    if (transparentLogoCache) return;
+    const img = new Image();
+    img.src = '/stroke-logo.png';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = imgData.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const r = d[i], g = d[i + 1], b = d[i + 2];
+          if (r > 238 && g > 238 && b > 238) {
+            d[i + 3] = 0;
+          } else if (r > 215 && g > 215 && b > 215) {
+            const avg = (r + g + b) / 3;
+            const alphaRatio = Math.max(0, (238 - avg) / 23);
+            d[i + 3] = Math.round(d[i + 3] * alphaRatio);
+          }
+        }
+        ctx.putImageData(imgData, 0, 0);
+        const url = canvas.toDataURL('image/png');
+        transparentLogoCache = url;
+        setLogoSrc(url);
+      } catch (e) {
+        setLogoSrc('/stroke-logo.png');
+      }
+    };
+  }, []);
+
+  return (
+    <img 
+      src={logoSrc} 
+      alt="StrokeRP Logo" 
+      style={{
+        width: size,
+        height: size,
+        objectFit: 'contain',
+        display: 'inline-block',
+        verticalAlign: 'middle',
+        flexShrink: 0,
+        ...style
+      }}
+      className={className}
+    />
+  );
+}
+
+let transparentHeroCache = null;
+
+function HeroIllustration({ style = {}, className = '' }) {
+  const [imgSrc, setImgSrc] = useState(transparentHeroCache || '/hero-doctor.png');
+
+  useEffect(() => {
+    if (transparentHeroCache) return;
+    const img = new Image();
+    img.src = '/hero-doctor.png';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        const w = img.naturalWidth || img.width;
+        const h = img.naturalHeight || img.height;
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const imgData = ctx.getImageData(0, 0, w, h);
+        const d = imgData.data;
+
+        // Check if image already has transparent pixels in corners
+        if (d[3] === 0 || d[(w - 1) * 4 + 3] === 0) {
+          transparentHeroCache = '/hero-doctor.png';
+          setImgSrc('/hero-doctor.png');
+          return;
+        }
+
+        // Flood fill from outer borders to remove white background without touching doctor's white coat
+        const visited = new Uint8Array(w * h);
+        const queue = [];
+        for (let x = 0; x < w; x++) {
+          queue.push(x, 0);
+          queue.push(x, h - 1);
+        }
+        for (let y = 0; y < h; y++) {
+          queue.push(0, y);
+          queue.push(w - 1, y);
+        }
+
+        while (queue.length > 0) {
+          const cy = queue.pop();
+          const cx = queue.pop();
+          const idx = cy * w + cx;
+          if (visited[idx]) continue;
+          visited[idx] = 1;
+
+          const p = idx * 4;
+          const r = d[p], g = d[p + 1], b = d[p + 2];
+          if (r > 235 && g > 235 && b > 235) {
+            d[p + 3] = 0;
+            if (cx > 0 && !visited[idx - 1]) queue.push(cx - 1, cy);
+            if (cx < w - 1 && !visited[idx + 1]) queue.push(cx + 1, cy);
+            if (cy > 0 && !visited[idx - w]) queue.push(cx, cy - 1);
+            if (cy < h - 1 && !visited[idx + w]) queue.push(cx, cy + 1);
+          } else if (r > 200 && g > 200 && b > 200) {
+            const avg = (r + g + b) / 3;
+            const factor = Math.max(0, (235 - avg) / 35);
+            d[p + 3] = Math.round(d[p + 3] * factor);
+          }
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+        const url = canvas.toDataURL('image/png');
+        transparentHeroCache = url;
+        setImgSrc(url);
+      } catch (e) {
+        setImgSrc('/hero-doctor.png');
+      }
+    };
+  }, []);
+
+  return (
+    <img
+      src={imgSrc}
+      alt="Doctor analyzing stroke risk"
+      style={{
+        maxHeight: 180,
+        maxWidth: '100%',
+        width: 'auto',
+        height: 'auto',
+        objectFit: 'contain',
+        filter: 'drop-shadow(0 10px 24px rgba(0, 0, 0, 0.35))',
+        ...style
+      }}
+      className={className}
+    />
+  );
+}
+
 /* ===================== UTILITIES ===================== */
 function Badge({ type, label }) {
   return <span className={`badge ${type}`}>{label}</span>;
@@ -319,11 +466,12 @@ function LoginPage({ onLogin }) {
             placeItems: 'center', 
             marginBottom: 14 
           }}>
-            <Brain size={44} color="#1877f2" />
+            <StrokeLogo size={60} />
           </div>
 
-          <h1 style={{ fontSize: 26, fontWeight: 900, color: '#1877f2', margin: 0, letterSpacing: '0.5px' }}>
-            StrokeRP
+          <h1 style={{ fontSize: 28, fontWeight: 900, margin: 0, letterSpacing: '0.5px' }}>
+            <span style={{ color: '#0b2361' }}>Stroke</span>
+            <span style={{ color: '#0084ff' }}>RP</span>
           </h1>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginTop: 2, letterSpacing: '0.2px' }}>
             Stroke Risk Prediction Using Data Mining
@@ -572,9 +720,15 @@ function DashboardView({ onNavigatePredict }) {
             </button>
           </div>
         </div>
-        <div className="hero-illustration">
-          <Activity size={48} />
-          <Brain size={48} />
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          flexShrink: 0,
+          marginLeft: 24,
+          zIndex: 2
+        }}>
+          <HeroIllustration style={{ maxHeight: 195 }} />
         </div>
       </div>
 
@@ -1932,16 +2086,67 @@ function UsersView() {
       </div>
 
       <div className="feature-card">
-        <div className="section-header" style={{ marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ position: 'relative' }}>
-              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#7a9aac' }} />
-              <input className="search-box" style={{ paddingLeft: 32 }} placeholder="ค้นหาผู้ใช้..." value={search} onChange={e => setSearch(e.target.value)} />
-            </div>
-            <button className="action-btn" onClick={loadUsers} title="รีเฟรช"><RefreshCw size={16} /></button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18, flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', width: 260 }}>
+            <Search size={18} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+            <input 
+              className="search-box" 
+              style={{ 
+                width: '100%', 
+                padding: '9px 14px 9px 38px', 
+                borderRadius: 8, 
+                border: '1px solid #cbd5e1', 
+                fontSize: 14, 
+                outline: 'none', 
+                background: '#ffffff',
+                color: '#0f172a' 
+              }} 
+              placeholder="ค้นหาผู้ใช้..." 
+              value={search} 
+              onChange={e => setSearch(e.target.value)} 
+            />
           </div>
-          <button className="primary-button" style={{ width: 'auto', padding: '8px 18px', display: 'flex', alignItems: 'center', gap: 6 }} onClick={openAdd}>
-            <Plus size={16} /> เพิ่มผู้ใช้
+
+          <button 
+            className="primary-button" 
+            style={{ 
+              width: 'auto', 
+              padding: '9px 20px', 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: 8, 
+              background: '#1877f2', 
+              color: '#fff', 
+              fontSize: 14, 
+              fontWeight: 700, 
+              borderRadius: 8, 
+              border: 'none', 
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(24, 119, 242, 0.25)' 
+            }} 
+            onClick={openAdd}
+          >
+            <Plus size={18} /> เพิ่มผู้ใช้
+          </button>
+
+          <button 
+            className="action-btn" 
+            onClick={loadUsers} 
+            title="รีเฟรช" 
+            style={{ 
+              width: 38, 
+              height: 38, 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              borderRadius: 8, 
+              border: 'none', 
+              background: 'transparent', 
+              color: '#475569', 
+              cursor: 'pointer' 
+            }}
+          >
+            <RefreshCw size={18} />
           </button>
         </div>
 
@@ -2143,16 +2348,67 @@ function DatasetView() {
       </div>
 
       <div className="feature-card">
-        <div className="section-header" style={{ marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ position: 'relative' }}>
-              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#7a9aac' }} />
-              <input className="search-box" style={{ paddingLeft: 32 }} placeholder="ค้นหาชื่อผู้ป่วย..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
-            </div>
-            <button className="action-btn" onClick={loadRows} title="รีเฟรช"><RefreshCw size={16} /></button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18, flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', width: 260 }}>
+            <Search size={18} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+            <input 
+              className="search-box" 
+              style={{ 
+                width: '100%', 
+                padding: '9px 14px 9px 38px', 
+                borderRadius: 8, 
+                border: '1px solid #cbd5e1', 
+                fontSize: 14, 
+                outline: 'none', 
+                background: '#ffffff',
+                color: '#0f172a' 
+              }} 
+              placeholder="ค้นหาชื่อผู้ป่วย..." 
+              value={search} 
+              onChange={e => { setSearch(e.target.value); setPage(1); }} 
+            />
           </div>
-          <button className="primary-button" style={{ width: 'auto', padding: '8px 18px', display: 'flex', alignItems: 'center', gap: 6 }} onClick={openAdd}>
-            <Plus size={16} /> เพิ่มข้อมูลผู้ป่วย
+
+          <button 
+            className="primary-button" 
+            style={{ 
+              width: 'auto', 
+              padding: '9px 20px', 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: 8, 
+              background: '#1877f2', 
+              color: '#fff', 
+              fontSize: 14, 
+              fontWeight: 700, 
+              borderRadius: 8, 
+              border: 'none', 
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(24, 119, 242, 0.25)' 
+            }} 
+            onClick={openAdd}
+          >
+            <Plus size={18} /> เพิ่มข้อมูลผู้ป่วย
+          </button>
+
+          <button 
+            className="action-btn" 
+            onClick={loadRows} 
+            title="รีเฟรช" 
+            style={{ 
+              width: 38, 
+              height: 38, 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              borderRadius: 8, 
+              border: 'none', 
+              background: 'transparent', 
+              color: '#475569', 
+              cursor: 'pointer' 
+            }}
+          >
+            <RefreshCw size={18} />
           </button>
         </div>
 
@@ -2347,17 +2603,53 @@ function ModelComparisonView() {
 
 /* ===================== MAIN APP ===================== */
 function App() {
-  const [session, setSession] = useState(null);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [session, setSession] = useState(() => {
+    try {
+      const saved = localStorage.getItem('stroke_session');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      return localStorage.getItem('stroke_active_tab') || 'dashboard';
+    } catch {
+      return 'dashboard';
+    }
+  });
 
   function handleLogin(user) {
     setSession(user);
-    setActiveTab('dashboard');
+    try {
+      localStorage.setItem('stroke_session', JSON.stringify(user));
+    } catch (e) {
+      console.error(e);
+    }
+    const savedTab = localStorage.getItem('stroke_active_tab') || 'dashboard';
+    setActiveTab(savedTab);
   }
 
   async function handleLogout() {
-    await fetch(`${API}/api/logout/`, { credentials: 'include' });
+    try {
+      await fetch(`${API}/api/logout/`, { credentials: 'include' });
+    } catch (e) {
+      console.error(e);
+    }
+    localStorage.removeItem('stroke_session');
+    localStorage.removeItem('stroke_active_tab');
     setSession(null);
+    setActiveTab('dashboard');
+  }
+
+  function handleTabChange(tabId) {
+    setActiveTab(tabId);
+    try {
+      localStorage.setItem('stroke_active_tab', tabId);
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   if (!session) return <LoginPage onLogin={handleLogin} />;
@@ -2369,7 +2661,7 @@ function App() {
   const adminTabs = visibleTabs.filter(t => t.adminOnly);
 
   const views = {
-    dashboard: <DashboardView onNavigatePredict={() => setActiveTab('predict')} />,
+    dashboard: <DashboardView onNavigatePredict={() => handleTabChange('predict')} />,
     disease_info: <DiseaseInfoView />,
     predict: <PredictView />,
     dataset: <DatasetView />,
@@ -2380,8 +2672,8 @@ function App() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <Brain size={24} color="#3b82f6" />
-          <h1>StrokeRP</h1>
+          <StrokeLogo size={54} />
+          <h1>Stroke<span style={{ color: '#0099ff' }}>RP</span></h1>
           <p className="sidebar-subtitle">
             Stroke Risk Prediction<br />
             Using Data Mining
@@ -2393,7 +2685,7 @@ function App() {
             <button
               key={tab.id}
               className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
             >
               <tab.icon size={18} />
               <span>{tab.label}</span>
@@ -2406,7 +2698,7 @@ function App() {
                 <button
                   key={tab.id}
                   className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => handleTabChange(tab.id)}
                 >
                   <tab.icon size={18} />
                   <span>{tab.label}</span>

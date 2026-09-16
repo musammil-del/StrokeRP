@@ -1,0 +1,52 @@
+<svg viewBox="0 0 200 200" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="favHeadGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0052d4" />
+      <stop offset="55%" stop-color="#0072ff" />
+      <stop offset="100%" stop-color="#00c6ff" />
+    </linearGradient>
+    <linearGradient id="favCrossGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00d2ff" />
+      <stop offset="100%" stop-color="#0066ff" />
+    </linearGradient>
+    <linearGradient id="favBrainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0052d4" />
+      <stop offset="100%" stop-color="#0099ff" />
+    </linearGradient>
+  </defs>
+
+  <!-- Left Wing Accent Swoosh -->
+  <path d="M 30,95 C 26,114 32,135 42,148 C 36,132 31,114 30,95 Z" fill="url(#favHeadGrad)" />
+
+  <!-- Outer Skull Arc & Head/Face Silhouette -->
+  <path d="M 40,98 C 40,56 72,20 120,20 C 148,20 168,34 174,58 C 176,70 174,82 170,90 C 167,98 170,106 176,113 L 184,117 L 171,124 C 175,129 176,133 174,136 L 167,138 C 170,142 171,145 169,148 C 165,153 167,157 166,161 C 160,172 150,180 134,185 C 142,165 144,148 138,132 C 130,112 114,98 116,80 C 118,68 128,56 140,48 C 126,36 108,32 92,34 C 64,38 50,65 50,98 Z" fill="url(#favHeadGrad)" />
+
+  <!-- Brain Outline -->
+  <path d="M 85,50 C 90,44 100,43 106,48 C 114,46 124,52 124,62 C 132,66 135,76 130,85 C 134,94 128,104 118,106 C 112,112 102,112 96,106 C 88,110 78,106 76,96 C 68,94 65,84 70,76 C 65,68 70,58 78,54 C 78,48 82,46 85,50 Z" fill="none" stroke="url(#favBrainGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Brain Sulci / Folds -->
+  <path d="M 80,68 C 88,70 94,64 98,68 C 100,72 96,78 90,78" fill="none" stroke="url(#favBrainGrad)" stroke-width="4" stroke-linecap="round" />
+  <path d="M 106,94 C 104,88 110,82 116,84" fill="none" stroke="url(#favBrainGrad)" stroke-width="4" stroke-linecap="round" />
+
+  <!-- Neural AI Nodes & Links (Pair 1) -->
+  <line x1="90" y1="84" x2="114" y2="68" stroke="#0058e6" stroke-width="5.5" stroke-linecap="round" />
+  <circle cx="90" cy="84" r="6.5" fill="#0058e6" />
+  <circle cx="114" cy="68" r="6.5" fill="#0058e6" />
+
+  <!-- Neural AI Nodes & Links (Pair 2) -->
+  <line x1="108" y1="96" x2="126" y2="82" stroke="#00b4d8" stroke-width="5" stroke-linecap="round" />
+  <circle cx="108" cy="96" r="5.5" fill="#00b4d8" />
+  <circle cx="126" cy="82" r="5.5" fill="#00b4d8" />
+
+  <!-- Middle Arc Swoosh -->
+  <path d="M 68,136 C 88,142 110,162 120,185 C 112,165 92,148 68,136 Z" fill="url(#favHeadGrad)" />
+
+  <!-- Bottom Swoosh -->
+  <path d="M 72,174 C 95,193 122,194 144,190 C 122,197 96,195 72,174 Z" fill="url(#favHeadGrad)" />
+
+  <!-- Medical Cross (+) -->
+  <g transform="translate(28, 122)">
+    <rect x="0" y="16" width="54" height="22" rx="5" fill="url(#favCrossGrad)" />
+    <rect x="16" y="0" width="22" height="54" rx="5" fill="url(#favCrossGrad)" />
+  </g>
+</svg>

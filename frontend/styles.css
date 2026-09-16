@@ -244,7 +244,7 @@ html, body, #root {
 
 .sidebar-header {
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
+  grid-template-columns: 54px minmax(0, 1fr);
   column-gap: 12px;
   row-gap: 2px;
   align-items: center;
@@ -254,7 +254,8 @@ html, body, #root {
   color: #fff;
 }
 
-.sidebar-header svg {
+.sidebar-header svg,
+.sidebar-header img {
   grid-row: 1 / 3;
 }
 
