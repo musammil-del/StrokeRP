@@ -293,8 +293,10 @@ def predict_stroke(request):
 def dashboard_stats(request):
     try:
         total_predictions = StrokePrediction.objects.count()
+        # Count total patients matching the exact logic used in DatasetView / api_dataset
+        total_patients = StrokePrediction.objects.count() if StrokePrediction.objects.exists() else StrokeDataset.objects.count()
         if total_predictions == 0:
-            total_predictions = StrokeDataset.objects.count()
+            total_predictions = total_patients
             stroke_cases = StrokeDataset.objects.filter(stroke_type__in=['Ischemic', 'Hemorrhagic']).count()
             no_stroke_cnt = StrokeDataset.objects.filter(stroke_type='No_Stroke').count()
             ischemic_cnt = StrokeDataset.objects.filter(stroke_type='Ischemic').count()
@@ -396,7 +398,8 @@ def dashboard_stats(request):
 
         return JsonResponse({
             'success': True,
-            'total_predictions': total_predictions,
+            'total_predictions': total_predictions if total_predictions > 0 else total_patients,
+            'total_patients': total_patients if total_patients > 0 else (total_predictions or 4981),
             'stroke_cases': stroke_cases,
             'high_risk_count': stroke_cases,
             'high_risk_pct': high_risk_pct,

@@ -663,6 +663,7 @@ function DashboardView({ onNavigatePredict }) {
   const hemorrhagic = strokeTypes['Hemorrhagic'] || 101;
 
   const highRiskCount = stats?.high_risk_count ?? (ischemic + hemorrhagic || 318);
+  const totalPatients = stats?.total_patients ?? (stats?.total_dataset || 65);
 
   const noStrokePct = total > 0 ? ((noStroke / total) * 100).toFixed(1) : '72.4';
   const ischemicPct = total > 0 ? ((ischemic / total) * 100).toFixed(1) : '19.7';
@@ -734,75 +735,40 @@ function DashboardView({ onNavigatePredict }) {
 
       {/* Top Stat Cards Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 20 }}>
-        {/* Card 1: ผู้ป่วยในประเทศไทย */}
+        {/* Card 1: ผู้ป่วยที่มีความเสี่ยงสูง */}
         <div className="feature-card" style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span style={{ fontSize: 13, fontWeight: 800, color: '#475569' }}>ผู้ป่วยโรคหลอดเลือดสมองในประเทศไทย</span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#0284c7', background: '#e0f2fe', padding: '2px 8px', borderRadius: 6 }}>ระดับประเทศ</span>
+            <span style={{ fontSize: 13, fontWeight: 800, color: '#475569' }}>ผู้ป่วยที่มีความเสี่ยงสูง</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#dc2626', background: '#fee2e2', padding: '2px 8px', borderRadius: 6 }}>เสี่ยงสูง</span>
           </div>
           <div>
-            <div style={{ fontSize: 26, fontWeight: 900, color: '#0284c7', lineHeight: 1.2 }}>363,688</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginTop: 4 }}>ราย</div>
+            <div style={{ fontSize: 28, fontWeight: 900, color: '#dc2626', lineHeight: 1.2 }}>{formatNum(highRiskCount)}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginTop: 4 }}>คน</div>
           </div>
         </div>
 
-        {/* Card 2: ผู้ป่วยในจังหวัดนราธิวาส */}
+        {/* Card 2: ผู้ป่วยที่บันทึกในระบบ */}
         <div className="feature-card" style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span style={{ fontSize: 13, fontWeight: 800, color: '#475569' }}>ผู้ป่วยโรคหลอดเลือดสมองในจังหวัดนราธิวาส</span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#d97706', background: '#fef3c7', padding: '2px 8px', borderRadius: 6 }}>ระดับจังหวัด</span>
+            <span style={{ fontSize: 13, fontWeight: 800, color: '#475569' }}>ผู้ป่วยที่บันทึกในระบบ</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#0284c7', background: '#e0f2fe', padding: '2px 8px', borderRadius: 6 }}>ในระบบ</span>
           </div>
           <div>
-            <div style={{ fontSize: 26, fontWeight: 900, color: '#d97706', lineHeight: 1.2 }}>1,861</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginTop: 4 }}>ราย</div>
+            <div style={{ fontSize: 28, fontWeight: 900, color: '#0284c7', lineHeight: 1.2 }}>{formatNum(totalPatients)}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginTop: 4 }}>รายการ</div>
           </div>
         </div>
 
-        {/* Combined Card 3 & 4: สถิติการพยากรณ์และผู้ป่วยเสี่ยงสูง (เลือกสลับได้) */}
+        {/* Card 3: จำนวนครั้งที่พยากรณ์ */}
         <div className="feature-card" style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 6 }}>
-            <span style={{ fontSize: 13, fontWeight: 800, color: '#475569' }}>
-              {statTab === 'total' ? 'จำนวนครั้งที่พยากรณ์' : 'จำนวนผู้ป่วยเสี่ยงสูง'}
-            </span>
-            <div style={{ display: 'inline-flex', background: '#f1f5f9', borderRadius: 8, padding: 3, gap: 2 }}>
-              {[
-                { id: 'total', label: 'ครั้งที่พยากรณ์' },
-                { id: 'risk', label: 'เสี่ยงสูง' }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setStatTab(tab.id)}
-                  style={{
-                    border: 'none',
-                    padding: '3px 10px',
-                    borderRadius: 6,
-                    fontSize: 11,
-                    fontWeight: statTab === tab.id ? 800 : 600,
-                    background: statTab === tab.id ? '#ffffff' : 'transparent',
-                    color: statTab === tab.id ? (tab.id === 'risk' ? '#dc2626' : '#1877f2') : '#64748b',
-                    boxShadow: statTab === tab.id ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontSize: 13, fontWeight: 800, color: '#475569' }}>จำนวนครั้งที่พยากรณ์</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#1877f2', background: '#e0f2fe', padding: '2px 8px', borderRadius: 6 }}>ทั้งหมด</span>
           </div>
-
-          {/* Tab Content Display */}
-          {statTab === 'total' ? (
-            <div>
-              <div style={{ fontSize: 26, fontWeight: 900, color: '#1877f2', lineHeight: 1.2 }}>{formatNum(total)}</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginTop: 4 }}>ครั้ง</div>
-            </div>
-          ) : (
-            <div>
-              <div style={{ fontSize: 26, fontWeight: 900, color: '#dc2626', lineHeight: 1.2 }}>{formatNum(highRiskCount)}</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginTop: 4 }}>คน</div>
-            </div>
-          )}
+          <div>
+            <div style={{ fontSize: 28, fontWeight: 900, color: '#1877f2', lineHeight: 1.2 }}>{formatNum(total)}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginTop: 4 }}>ครั้ง</div>
+          </div>
         </div>
       </div>
 
