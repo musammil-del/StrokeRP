@@ -2,8 +2,6 @@ import os
 import pandas as pd
 import numpy as np
 import joblib
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 from sklearn.model_selection import train_test_split, ParameterGrid, cross_validate
 from sklearn.ensemble import RandomForestClassifier
@@ -23,7 +21,7 @@ from imblearn.over_sampling import SMOTE
 # -----------------------------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(BASE_DIR, "1989.csv")
-MODEL_PATH = os.path.join(BASE_DIR, "dss.pkl")
+MODEL_PATH = os.path.join(BASE_DIR, "Randomforestv.pkl")
 TARGET_COL = "Stroke_Type"
 
 # คอลัมน์ที่ไม่ใช่ feature ทางการแพทย์
@@ -389,127 +387,6 @@ print("\nClass order:")
 print("Class 0 = No Stroke")
 print("Class 1 = Ischemic")
 print("Class 2 = Hemorrhagic")
-
-# -----------------------------------------------------------------------
-# 5.0.1) Confusion Matrix Visualization
-# -----------------------------------------------------------------------
-# แสดงผล Confusion Matrix ในรูปแบบ Heatmap
-# ใช้ลำดับเดียวกับรูปตัวอย่าง: Hemorrhagic, Ischemic, No Stroke
-plot_labels = ["Hemorrhagic", "Ischemic", "No_Stroke"]
-
-# cm เดิมมีลำดับ: No Stroke, Ischemic, Hemorrhagic
-# จึงสลับแถว/คอลัมน์ให้ตรงกับ plot_labels
-plot_order = [2, 1, 0]
-cm_plot = cm[np.ix_(plot_order, plot_order)]
-
-plt.figure(figsize=(10, 7))
-sns.heatmap(
-    cm_plot,
-    annot=True,
-    fmt="d",
-    cmap="Blues",
-    xticklabels=plot_labels,
-    yticklabels=plot_labels,
-    vmin=0,
-    vmax=cm_plot.max()
-)
-
-plt.title("Confusion Matrix", fontsize=20, pad=15)
-plt.xlabel("Predicted", fontsize=16)
-plt.ylabel("Actual", fontsize=16)
-plt.xticks(fontsize=13)
-plt.yticks(fontsize=13, rotation=90)
-plt.tight_layout()
-
-cm_plot_path = os.path.join(BASE_DIR, "rf_confusion_matrix.png")
-plt.savefig(cm_plot_path, dpi=300, bbox_inches="tight")
-plt.show()
-plt.close()
-
-print(f"\nบันทึก Confusion Matrix เป็นรูปภาพที่: {cm_plot_path}")
-
-
-# -----------------------------------------------------------------------
-# 5.0.2) Precision / Recall / F1-score แยกแต่ละประเภทโรค
-# -----------------------------------------------------------------------
-# คำนวณ metric รายคลาส เพื่อให้ได้ผลแบบรูปตัวอย่าง
-report = classification_report(
-    y_test,
-    y_pred,
-    labels=[2, 1, 0],
-    target_names=plot_labels,
-    output_dict=True,
-    zero_division=0
-)
-
-metrics_df = pd.DataFrame({
-    "precision": [report[label]["precision"] for label in plot_labels],
-    "recall": [report[label]["recall"] for label in plot_labels],
-    "f1-score": [report[label]["f1-score"] for label in plot_labels]
-}, index=plot_labels)
-
-print("\n=== Precision / Recall / F1-score แยกแต่ละประเภทโรค ===")
-print(metrics_df.round(4))
-
-# วาดกราฟแท่ง
-ax = metrics_df.plot(
-    kind="bar",
-    figsize=(12, 7),
-    width=0.75
-)
-
-plt.title("Precision / Recall / F1-score", fontsize=20, pad=15)
-plt.xlabel("")
-plt.ylabel("Score", fontsize=15)
-plt.ylim(0, 1.2)
-plt.xticks(rotation=30, ha="right", fontsize=13)
-plt.yticks(fontsize=12)
-plt.legend(fontsize=12, loc="lower right")
-
-# แสดงค่าตัวเลขบนแท่ง
-for container in ax.containers:
-    ax.bar_label(
-        container,
-        fmt="%.2f",
-        padding=5,
-        fontsize=11,
-        rotation=90
-    )
-
-plt.tight_layout()
-
-metrics_plot_path = os.path.join(
-    BASE_DIR,
-    "rf_precision_recall_f1_by_class.png"
-)
-plt.savefig(metrics_plot_path, dpi=300, bbox_inches="tight")
-plt.show()
-plt.close()
-
-print(
-    f"บันทึกกราฟ Precision/Recall/F1-score เป็นรูปภาพที่: "
-    f"{metrics_plot_path}"
-)
-
-
-# -----------------------------------------------------------------------
-# 5.0.3) บันทึก Metrics รายคลาสเป็น CSV
-# -----------------------------------------------------------------------
-metrics_csv_path = os.path.join(
-    BASE_DIR,
-    "rf_precision_recall_f1_by_class.csv"
-)
-
-metrics_df.to_csv(
-    metrics_csv_path,
-    encoding="utf-8-sig"
-)
-
-print(
-    f"บันทึก Metrics รายคลาสเป็น CSV ที่: "
-    f"{metrics_csv_path}"
-)
-
 
 # -----------------------------------------------------------------------
 # 5.1) Feature Importance

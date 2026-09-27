@@ -63,6 +63,8 @@ const blankForm = {
   blood_sugar: '', cholesterol: '', ekg_result: false,
   systolic_bp: '', diastolic_bp: '', bmi: '',
   has_diabetes: false, has_hypertension: false, has_dyslipidemia: false,
+  previous_stroke_tia: false, has_ckd: false, smoking: false, alcohol: false,
+  stress_management: false,
 };
 
 /* ===================== LOGO COMPONENT ===================== */
@@ -747,18 +749,6 @@ function DashboardView({ onNavigatePredict }) {
           </div>
         </div>
 
-        {/* Card 2: ผู้ป่วยที่บันทึกในระบบ */}
-        <div className="feature-card" style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span style={{ fontSize: 13, fontWeight: 800, color: '#475569' }}>ผู้ป่วยที่บันทึกในระบบ</span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#0284c7', background: '#e0f2fe', padding: '2px 8px', borderRadius: 6 }}>ในระบบ</span>
-          </div>
-          <div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: '#0284c7', lineHeight: 1.2 }}>{formatNum(totalPatients)}</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginTop: 4 }}>รายการ</div>
-          </div>
-        </div>
-
         {/* Card 3: จำนวนครั้งที่พยากรณ์ */}
         <div className="feature-card" style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -1163,9 +1153,20 @@ function DiseaseInfoView() {
               </div>
             </div>
 
-            <p style={{ marginBottom: 20, lineHeight: 1.8, fontSize: 14, color: '#334155' }}>
-              <strong>โรคหลอดเลือดสมอง หรือ Stroke</strong> คือ ภาวะสมองขาดเลือดที่เกิดจากหลอดเลือดสมองตีบ/อุดตันหรือมีเลือดออกในสมอง หรืออาการเส้นเลือดในสมองตีบ ทำให้เลือดไม่สามารถไปเลี้ยงสมองได้ ทำให้เซลล์สมองขาดออกซิเจน ส่งผลให้สมองตาย ผู้ป่วยจำเป็นต้องพบแพทย์ทันที การรักษาอย่างรีบด่วนเป็นสิ่งสำคัญมาก เพราะช่วยลดความรุนแรงจากภาวะสมองตาย และรวมถึงลดภาวะแทรกซ้อนอื่นๆ และยังป้องกันความพิการและทุพพลภาพที่จะเกิดขึ้น
-            </p>
+            <div className="stroke-intro">
+              <div className="stroke-intro-copy">
+                <span className="stroke-intro-label">รู้จักโรคหลอดเลือดสมอง</span>
+                <p>
+                  <strong>โรคหลอดเลือดสมอง หรือ Stroke</strong> คือ ภาวะสมองขาดเลือดที่เกิดจากหลอดเลือดสมองตีบ/อุดตันหรือมีเลือดออกในสมอง หรืออาการเส้นเลือดในสมองตีบ ทำให้เลือดไม่สามารถไปเลี้ยงสมองได้ ทำให้เซลล์สมองขาดออกซิเจน ส่งผลให้สมองตาย ผู้ป่วยจำเป็นต้องพบแพทย์ทันที การรักษาอย่างรีบด่วนเป็นสิ่งสำคัญมาก เพราะช่วยลดความรุนแรงจากภาวะสมองตาย และรวมถึงลดภาวะแทรกซ้อนอื่นๆ และยังป้องกันความพิการและทุพพลภาพที่จะเกิดขึ้น
+                </p>
+                <div className="stroke-intro-note"><AlertTriangle size={17} /> เป็นภาวะฉุกเฉิน ควรรีบพบแพทย์ทันทีเมื่อมีอาการ</div>
+              </div>
+              <img
+                className="stroke-intro-image"
+                src="/stroke-brain.jpg"
+                alt="ภาพประกอบภาวะโรคหลอดเลือดสมอง"
+              />
+            </div>
 
             <h4 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 14, paddingBottom: 8, borderBottom: '2px solid #d1e0e8' }}>
               โรคหลอดเลือดสมอง แบ่งได้เป็น 2 ชนิด คือ
@@ -1553,7 +1554,7 @@ function PredictView() {
         return 'กรุณากรอกระดับน้ำตาลในเลือด Blood Sugar (mg/dL)';
       }
       if (!form.cholesterol || Number(form.cholesterol) <= 0) {
-        return 'กรุณากรอกระดับไขมันในเลือด Cholesterol (mg/dL)';
+        return 'กรุณากรอกระดับคอเลสเตอรอล Cholesterol (mg/dL)';
       }
     }
     return null;
@@ -1580,6 +1581,7 @@ function PredictView() {
       const payload = {
         ...form,
         age: Number(form.age),
+        sex: form.gender === 'ชาย' ? 1 : 0,
         weight: Number(form.weight),
         height: Number(form.height),
         blood_sugar: Number(form.blood_sugar),
@@ -1672,32 +1674,51 @@ function PredictView() {
             <h3 style={{ fontSize: 16, fontWeight: 800, color: '#071838', marginBottom: 20 }}>ขั้นที่ 2: ข้อมูลสุขภาพและอาการ</h3>
             <div className="grid-2" style={{ gap: 24 }}>
               <div>
-                <p style={{ fontSize: 14, fontWeight: 800, color: '#1877f2', marginBottom: 12 }}>ข้อมูลการตรวจสุขภาพ</p>
-                <div className="field"><span>ความดันโลหิตตัวบน Systolic BP (mmHg)</span><input type="number" placeholder="เช่น 140" value={form.systolic_bp} onChange={e => { setError(''); set('systolic_bp', e.target.value); }} /></div>
-                <div className="field"><span>ความดันโลหิตตัวล่าง Diastolic BP (mmHg)</span><input type="number" placeholder="เช่น 90" value={form.diastolic_bp} onChange={e => { setError(''); set('diastolic_bp', e.target.value); }} /></div>
-                <div className="field"><span>น้ำตาลในเลือด Blood Sugar (mg/dL)</span><input type="number" placeholder="เช่น 100" value={form.blood_sugar} onChange={e => { setError(''); set('blood_sugar', e.target.value); }} /></div>
-                <div className="field"><span>ไขมันในเลือด Cholesterol (mg/dL)</span><input type="number" placeholder="เช่น 200" value={form.cholesterol} onChange={e => { setError(''); set('cholesterol', e.target.value); }} /></div>
-
-                <div style={{ marginTop: 16 }}>
-                  <p style={{ fontSize: 14, fontWeight: 800, color: '#071838', marginBottom: 10 }}>ประวัติโรค</p>
-                  <div className="check-group">
-                    {[
-                      { key: 'has_diabetes', label: 'เบาหวาน (Diabetes)' },
-                      { key: 'has_hypertension', label: 'ความดันโลหิตสูง (Hypertension)' },
-                      { key: 'has_dyslipidemia', label: 'ไขมันในเลือดสูง (Dyslipidemia)' },
-                      { key: 'ekg_result', label: 'EKG Result ผิดปกติ' },
-                    ].map(({ key, label }) => (
-                      <label key={key} className={`check-row ${form[key] ? 'checked' : ''}`}>
-                        <input type="checkbox" checked={form[key]} onChange={e => set(key, e.target.checked)} />
-                        <span>{label}</span>
-                      </label>
-                    ))}
-                  </div>
+                <p style={{ fontSize: 14, fontWeight: 800, color: '#1877f2', marginBottom: 12 }}>ปัจจัยเสี่ยงโรคหลอดเลือดสมองตีบ/อุดตัน</p>
+                <div className="check-group">
+                  {[
+                    { key: 'has_diabetes', label: 'เบาหวาน (Diabetes)' },
+                    { key: 'ekg_result', label: 'ผลคลื่นไฟฟ้าหัวใจ (EKG) ผิดปกติ' },
+                  ].map(({ key, label }) => (
+                    <label key={key} className={`check-row ${form[key] ? 'checked' : ''}`}>
+                      <input type="checkbox" checked={form[key]} onChange={e => set(key, e.target.checked)} />
+                      <span>{label}</span>
+                    </label>
+                  ))}
                 </div>
+                <p style={{ fontSize: 14, fontWeight: 800, color: '#dc2626', margin: '18px 0 10px' }}>ปัจจัยเสี่ยงโรคหลอดเลือดสมองแตก</p>
+                <div className="check-group">
+                  <label className={`check-row ${form.stress_management ? 'checked' : ''}`}>
+                    <input type="checkbox" checked={form.stress_management} onChange={e => set('stress_management', e.target.checked)} />
+                    <span>มีความเครียดสูง</span>
+                  </label>
+                </div>
+
+                <p style={{ fontSize: 14, fontWeight: 800, color: '#071838', margin: '18px 0 10px' }}>ปัจจัยเสี่ยงร่วม</p>
+                <div className="check-group">
+                  {[
+                    { key: 'has_hypertension', label: 'ความดันโลหิตสูง (Hypertension)' },
+                    { key: 'previous_stroke_tia', label: 'ประวัติโรคหลอดเลือดสมอง/TIA' },
+                    { key: 'has_ckd', label: 'โรคไตเรื้อรัง (CKD)' },
+                    { key: 'smoking', label: 'สูบบุหรี่' },
+                    { key: 'alcohol', label: 'ดื่มแอลกอฮอล์' },
+                  ].map(({ key, label }) => (
+                    <label key={key} className={`check-row ${form[key] ? 'checked' : ''}`}>
+                      <input type="checkbox" checked={form[key]} onChange={e => set(key, e.target.checked)} />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
+
               </div>
 
               <div>
-                <p style={{ fontSize: 14, fontWeight: 800, color: '#071838', marginBottom: 10 }}>อาการที่พบ</p>
+                <p style={{ fontSize: 14, fontWeight: 800, color: '#1877f2', marginBottom: 12 }}>ค่าตรวจสุขภาพ</p>
+                <div className="field"><span>ความดันโลหิตตัวบน Systolic BP (mmHg)</span><input type="number" placeholder="เช่น 140" value={form.systolic_bp} onChange={e => { setError(''); set('systolic_bp', e.target.value); }} /></div>
+                <div className="field"><span>ความดันโลหิตตัวล่าง Diastolic BP (mmHg)</span><input type="number" placeholder="เช่น 90" value={form.diastolic_bp} onChange={e => { setError(''); set('diastolic_bp', e.target.value); }} /></div>
+                <div className="field"><span>น้ำตาลในเลือด Blood Sugar (mg/dL)</span><input type="number" placeholder="เช่น 100" value={form.blood_sugar} onChange={e => { setError(''); set('blood_sugar', e.target.value); }} /></div>
+                <div className="field"><span>ระดับคอเลสเตอรอล (mg/dL)</span><input type="number" placeholder="เช่น 200" value={form.cholesterol} onChange={e => { setError(''); set('cholesterol', e.target.value); }} /></div>
+                <p style={{ fontSize: 14, fontWeight: 800, color: '#071838', margin: '18px 0 10px' }}>อาการที่พบ</p>
                 <div className="check-group">
                   {[
                     { key: 'weakness_half_body', label: 'แขน/ขาอ่อนแรงครึ่งซีก' },
@@ -1737,6 +1758,11 @@ function PredictView() {
                 ['Diabetes', form.has_diabetes ? 'ใช่' : 'ไม่'],
                 ['Hypertension', form.has_hypertension ? 'ใช่' : 'ไม่'],
                 ['Dyslipidemia', form.has_dyslipidemia ? 'ใช่' : 'ไม่'],
+                ['ประวัติโรคหลอดเลือดสมอง/TIA', form.previous_stroke_tia ? 'มี' : 'ไม่มี'],
+                ['โรคไตเรื้อรัง (CKD)', form.has_ckd ? 'มี' : 'ไม่มี'],
+                ['สูบบุหรี่', form.smoking ? 'ใช่' : 'ไม่'],
+                ['ดื่มแอลกอฮอล์', form.alcohol ? 'ใช่' : 'ไม่'],
+                ['ความเครียดสูง', form.stress_management ? 'ใช่' : 'ไม่'],
               ].map(([k, v], i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: i % 2 === 0 ? '#f8fafc' : '#fff', borderRadius: 6, fontSize: 13 }}>
                   <span style={{ fontWeight: 700, color: '#7a9aac' }}>{k}</span>

@@ -940,3 +940,71 @@ html, body, #root {
 @media (max-width: 900px) {
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
 }
+
+
+/* Stroke overview image and introduction */
+.stroke-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  align-items: center;
+  gap: 28px;
+  margin: 8px 0 28px;
+  padding: 24px;
+  border: 1px solid #dbeafe;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #f8fbff 0%, #eff6ff 100%);
+}
+
+.stroke-intro-copy p {
+  margin: 10px 0 16px;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.95;
+}
+
+.stroke-intro-label {
+  display: inline-block;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.stroke-intro-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  padding: 9px 12px;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.stroke-intro-note svg {
+  flex: 0 0 auto;
+}
+
+.stroke-intro-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(30, 64, 175, 0.16);
+}
+
+@media (max-width: 900px) {
+  .stroke-intro {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 18px;
+  }
+
+  .stroke-intro-image {
+    max-height: 360px;
+  }
+}

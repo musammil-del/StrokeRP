@@ -130,14 +130,18 @@ def predict_stroke(request):
             except (ValueError, TypeError):
                 return JsonResponse({'error': f'ค่า {f} ไม่ถูกต้อง'}, status=400)
 
-        # Load the model (Randomforestmd.pkl)
-        model_path = os.path.join(settings.BASE_DIR, "prediction", "ml_models", "Randomforestmd.pkl")
+        # Load the model (Randomforestv.pkl)
+        model_path = os.path.join(settings.BASE_DIR, "prediction", "ml_models", "Randomforestv.pkl")
         if not os.path.exists(model_path):
-            return JsonResponse({'error': 'ไม่พบไฟล์โมเดล Randomforestmd.pkl'}, status=400)
+            return JsonResponse({'error': 'ไม่พบไฟล์โมเดล Randomforestv.pkl'}, status=400)
         
         loaded_data = joblib.load(model_path)
         model = loaded_data["model"]
-        label_encoder = loaded_data["label_encoder"]
+        label_encoder = loaded_data.get("label_encoder")
+        inverse_mapping = loaded_data.get("inverse_mapping") or {}
+        class_mapping = loaded_data.get("class_mapping") or {}
+        if not label_encoder and not inverse_mapping:
+            return JsonResponse({'error': 'ไฟล์โมเดลไม่มี label_encoder หรือ inverse_mapping'}, status=500)
         features = loaded_data.get("feature_columns") or loaded_data.get("features", [])
         
         # Construct row for model matching features
@@ -152,7 +156,8 @@ def predict_stroke(request):
             if key_lower in [
                 'weakness_half_body', 'speech_difficulty', 'blurred_vision', 
                 'sudden_headache', 'dizziness_vertigo', 'ekg_result', 
-                'has_diabetes', 'has_hypertension', 'has_dyslipidemia'
+                'has_diabetes', 'has_hypertension', 'has_dyslipidemia',
+                'previous_stroke_tia', 'has_ckd', 'smoking', 'alcohol', 'stress_management'
             ]:
                 row[feature] = to_bool_int(val)
                 features_scaled[key_lower] = row[feature]
@@ -171,8 +176,12 @@ def predict_stroke(request):
         df = pd.DataFrame([row], columns=features)
         
         # Make prediction
-        pred_encoded = model.predict(df)
-        pred_label = label_encoder.inverse_transform(pred_encoded)[0]
+        pred_encoded = model.predict(df)[0]
+        if label_encoder:
+            pred_label = label_encoder.inverse_transform([pred_encoded])[0]
+        else:
+            pred_label = inverse_mapping.get(int(pred_encoded), inverse_mapping.get(str(int(pred_encoded)), str(pred_encoded)))
+        pred_label = 'No_Stroke' if pred_label == 'No Stroke' else str(pred_label)
         
         # Calculate confidence
         if hasattr(model, "predict_proba"):
@@ -241,9 +250,14 @@ def predict_stroke(request):
         probs_dict = {'No_Stroke': 0.0, 'Ischemic': 0.0, 'Hemorrhagic': 0.0}
         if hasattr(model, "predict_proba"):
             raw_probs = model.predict_proba(df)[0]
-            classes = list(label_encoder.classes_)
-            for idx, c in enumerate(classes):
-                probs_dict[c] = round(float(raw_probs[idx]) * 100, 1)
+            classes = getattr(model, 'classes_', range(len(raw_probs)))
+            for idx, class_id in enumerate(classes):
+                if label_encoder:
+                    class_label = label_encoder.inverse_transform([class_id])[0]
+                else:
+                    class_label = inverse_mapping.get(int(class_id), inverse_mapping.get(str(int(class_id)), str(class_id)))
+                class_label = 'No_Stroke' if class_label == 'No Stroke' else str(class_label)
+                probs_dict[class_label] = round(float(raw_probs[idx]) * 100, 1)
         else:
             if pred_label == 'Ischemic':
                 probs_dict = {'No_Stroke': 5.0, 'Ischemic': 92.0, 'Hemorrhagic': 3.0}
@@ -696,3 +710,4 @@ def api_model_comparison(request):
         })
         
     return JsonResponse({'success': True, 'models': result})
+
