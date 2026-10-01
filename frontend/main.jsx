@@ -44,13 +44,15 @@ import {
   FileText,
   Send
 } from 'lucide-react';
+import BeFastIllustration from './BeFastIllustration.jsx';
+import PreventionView from './PreventionView.jsx';
 import './styles.css';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const tabs = [
   { id: 'dashboard', label: 'หน้าหลัก', icon: BarChart3, title: '(Dashboard)', subtitle: 'ระบบวิเคราะห์สถิติภาพรวมและการพยากรณ์โรคหลอดเลือดสมอง' },
-  { id: 'disease_info', label: 'โรคหลอดเลือดสมอง', icon: HeartPulse, title: 'เกี่ยวกับโรคหลอดเลือดสมอง', subtitle: 'รู้จักอาการ สาเหตุ และสัญญาณเตือนภัยเงียบที่ควรรีบพบแพทย์' },
+  { id: 'disease_info', label: 'โรคหลอดเลือดสมอง', icon: Brain, title: 'เกี่ยวกับโรคหลอดเลือดสมอง', subtitle: 'รู้จักอาการ สาเหตุ และสัญญาณเตือนภัยเงียบที่ควรรีบพบแพทย์' },
   { id: 'predict', label: 'พยากรณ์โรค', icon: ClipboardCheck, title: 'การพยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง', subtitle: 'กรอกข้อมูลผู้ป่วยและข้อมูลสุขภาพเพื่อประเมินความเสี่ยงด้วย AI' },
   { id: 'dataset', label: 'จัดการข้อมูลผู้ป่วย', icon: Database, title: 'จัดการข้อมูลผู้ป่วยที่พยากรณ์', subtitle: 'เพิ่ม ลบ และแก้ไขข้อมูลของผู้ป่วยที่มีความเสี่ยงโรคหลอดเลือดสมอง', adminOnly: false },
   { id: 'users', label: 'จัดการผู้ใช้', icon: UsersRound, title: 'การจัดการผู้ใช้ (User Management)', subtitle: 'จัดการบัญชีผู้ใช้ สิทธิ์ และระดับการเข้าถึงระบบ', adminOnly: true },
@@ -59,7 +61,7 @@ const tabs = [
 const blankForm = {
   patient_id: '', gender: 'ชาย', age: '', weight: '', height: '',
   weakness_half_body: false, speech_difficulty: false, blurred_vision: false,
-  sudden_headache: false, dizziness_vertigo: false,
+  sudden_headache: false, dizziness_vertigo: false, numbness: false,
   blood_sugar: '', cholesterol: '', ekg_result: false,
   systolic_bp: '', diastolic_bp: '', bmi: '',
   has_diabetes: false, has_hypertension: false, has_dyslipidemia: false,
@@ -252,8 +254,8 @@ function DonutChart({ data, size = 160 }) {
   return (
     <svg viewBox={`0 0 ${size} ${size}`} style={{ width: size, height: size }}>
       {slices.map((s, i) => <path key={i} d={s.path} fill={s.color} opacity={0.9} />)}
-      <text x={cx} y={cy - 4} textAnchor="middle" fontSize="13" fontWeight="800" fill="#134e5e">{total}</text>
-      <text x={cx} y={cy + 12} textAnchor="middle" fontSize="9" fill="#7a9aac">ทั้งหมด</text>
+      <text x={cx} y={cy - 4} textAnchor="middle" fontSize="20" fontWeight="800" fill="#123462">{total.toLocaleString('en-US')}</text>
+      <text x={cx} y={cy + 12} textAnchor="middle" fontSize="10" fill="#7a9aac">ทั้งหมด</text>
     </svg>
   );
 }
@@ -642,7 +644,7 @@ function Topbar({ session, currentTitle }) {
 }
 
 /* ===================== DASHBOARD ===================== */
-function DashboardView({ onNavigatePredict }) {
+function DashboardView({ onNavigatePredict, onNavigateDiseaseInfo, onNavigateDataset }) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState(null);
@@ -658,28 +660,29 @@ function DashboardView({ onNavigatePredict }) {
 
   if (loading) return <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8' }}><Spinner /></div>;
 
-  const total = stats?.total_predictions || 1256;
+  const total = stats?.total_predictions ?? 1256;
   const strokeTypes = stats?.stroke_type_distribution || {};
-  const noStroke = strokeTypes['No_Stroke'] || 910;
-  const ischemic = strokeTypes['Ischemic'] || 247;
-  const hemorrhagic = strokeTypes['Hemorrhagic'] || 101;
+  const noStroke = strokeTypes['No_Stroke'] ?? 910;
+  const ischemic = strokeTypes['Ischemic'] ?? 247;
+  const hemorrhagic = strokeTypes['Hemorrhagic'] ?? 101;
 
   const highRiskCount = stats?.high_risk_count ?? (ischemic + hemorrhagic || 318);
   const totalPatients = stats?.total_patients ?? (stats?.total_dataset || 65);
 
-  const noStrokePct = total > 0 ? ((noStroke / total) * 100).toFixed(1) : '72.4';
-  const ischemicPct = total > 0 ? ((ischemic / total) * 100).toFixed(1) : '19.7';
-  const hemorrhagicPct = total > 0 ? ((hemorrhagic / total) * 100).toFixed(1) : '8.0';
+  const distributionTotal = noStroke + ischemic + hemorrhagic;
+  const noStrokePct = distributionTotal > 0 ? ((noStroke / distributionTotal) * 100).toFixed(1) : '0.0';
+  const ischemicPct = distributionTotal > 0 ? ((ischemic / distributionTotal) * 100).toFixed(1) : '0.0';
+  const hemorrhagicPct = distributionTotal > 0 ? ((hemorrhagic / distributionTotal) * 100).toFixed(1) : '0.0';
 
   const donutData = [
-    { label: 'ปกติ (No Stroke)', value: noStroke, color: '#27ae60', pct: noStrokePct },
-    { label: 'หลอดเลือดสมองตีบหรืออุดตัน (Ischemic Stroke)', value: ischemic, color: '#ff9800', pct: ischemicPct },
-    { label: 'หลอดเลือดสมองแตก (Hemorrhagic Stroke)', value: hemorrhagic, color: '#e74c3c', pct: hemorrhagicPct },
+    { label: 'ปกติ (No Stroke)', shortLabel: 'ปกติ', value: noStroke, color: '#27ae60', pct: noStrokePct },
+    { label: 'หลอดเลือดสมองตีบหรืออุดตัน (Ischemic Stroke)', shortLabel: 'ตีบ/อุดตัน', value: ischemic, color: '#ff9800', pct: ischemicPct },
+    { label: 'หลอดเลือดสมองแตก (Hemorrhagic Stroke)', shortLabel: 'สมองแตก', value: hemorrhagic, color: '#e74c3c', pct: hemorrhagicPct },
   ];
   const barData = [
-    { label: 'ปกติ (No Stroke)', value: noStroke, color: '#27ae60' },
-    { label: 'หลอดเลือดสมองตีบหรืออุดตัน (Ischemic Stroke)', value: ischemic, color: '#ff9800' },
-    { label: 'หลอดเลือดสมองแตก (Hemorrhagic Stroke)', value: hemorrhagic, color: '#e74c3c' },
+    { label: 'ปกติ', value: noStroke, color: '#27ae60' },
+    { label: 'ตีบ/อุดตัน', value: ischemic, color: '#ff9800' },
+    { label: 'สมองแตก', value: hemorrhagic, color: '#e74c3c' },
   ];
 
   const formatNum = (n) => Number(n).toLocaleString('en-US');
@@ -735,115 +738,95 @@ function DashboardView({ onNavigatePredict }) {
         </div>
       </div>
 
-      {/* Top Stat Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 20 }}>
-        {/* Card 1: ผู้ป่วยที่มีความเสี่ยงสูง */}
-        <div className="feature-card" style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span style={{ fontSize: 13, fontWeight: 800, color: '#475569' }}>ผู้ป่วยที่มีความเสี่ยงสูง</span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#dc2626', background: '#fee2e2', padding: '2px 8px', borderRadius: 6 }}>เสี่ยงสูง</span>
+      {/* Dashboard summary cards */}
+      <div className="dashboard-summary-grid">
+        <div className="feature-card dashboard-kpi-card dashboard-risk-card">
+          <div className="dashboard-card-head">
+            <span className="dashboard-card-icon danger"><UsersRound size={27} /></span>
+            <span className="dashboard-card-title">ผู้ป่วยที่มีความเสี่ยงสูง<small>ต้องเฝ้าระวังและติดตามอย่างใกล้ชิด</small></span>
+            <span className="dashboard-kpi-badge danger"><AlertTriangle size={14} /> เสี่ยงสูง</span>
           </div>
-          <div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: '#dc2626', lineHeight: 1.2 }}>{formatNum(highRiskCount)}</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginTop: 4 }}>คน</div>
-          </div>
-        </div>
-
-        {/* Card 3: จำนวนครั้งที่พยากรณ์ */}
-        <div className="feature-card" style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span style={{ fontSize: 13, fontWeight: 800, color: '#475569' }}>จำนวนครั้งที่พยากรณ์</span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#1877f2', background: '#e0f2fe', padding: '2px 8px', borderRadius: 6 }}>ทั้งหมด</span>
-          </div>
-          <div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: '#1877f2', lineHeight: 1.2 }}>{formatNum(total)}</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginTop: 4 }}>ครั้ง</div>
-          </div>
-        </div>
-      </div>
-
-      {/* สัดส่วนประเภทโรค with chart type switcher */}
-      <div className="feature-card" style={{ padding: '20px 24px', marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', margin: 0 }}>
-            สัดส่วนประเภทโรค
-          </h3>
-          
-          {/* Chart Type Selector */}
-          <div style={{ display: 'inline-flex', background: '#f1f5f9', borderRadius: 8, padding: 3, gap: 3 }}>
-            {[
-              { id: 'donut', label: 'Donut' },
-              { id: 'bar', label: 'Bar' },
-              { id: 'line', label: 'Line' },
-            ].map(ct => (
-              <button
-                key={ct.id}
-                onClick={() => setChartType(ct.id)}
-                style={{
-                  border: 'none',
-                  padding: '4px 12px',
-                  borderRadius: 6,
-                  fontSize: 12,
-                  fontWeight: chartType === ct.id ? 800 : 600,
-                  background: chartType === ct.id ? '#ffffff' : 'transparent',
-                  color: chartType === ct.id ? '#1877f2' : '#64748b',
-                  boxShadow: chartType === ct.id ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                {ct.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Chart Display Area */}
-        {chartType === 'donut' && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 28, flexWrap: 'wrap', padding: '6px 0' }}>
-            <DonutChart data={donutData} size={130} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {donutData.map((d, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: d.color, flexShrink: 0 }} />
-                  <span style={{ fontWeight: 600, color: '#475569' }}>{d.label}</span>
-                  <span style={{ fontWeight: 700, color: '#334155' }}>({d.pct}%)</span>
-                </div>
-              ))}
+          <div className="dashboard-card-footer">
+            <span className="dashboard-card-note danger"><Activity size={15} /> ผู้ป่วยที่ควรติดตาม</span>
+            <div className="dashboard-card-metric">
+              <div className="dashboard-kpi-value danger">{formatNum(highRiskCount)}</div>
+              <div className="dashboard-kpi-unit">คน</div>
             </div>
           </div>
-        )}
+        </div>
 
-        {chartType === 'bar' && (
-          <div style={{ width: '100%', height: 150, padding: '6px 0' }}>
-            <BarChart data={barData} height={110} />
+        <div className="feature-card dashboard-kpi-card dashboard-predictions-card">
+          <div className="dashboard-card-head">
+            <span className="dashboard-card-icon primary"><ClipboardCheck size={27} /></span>
+            <span className="dashboard-card-title">จำนวนครั้งที่พยากรณ์<small>ทั้งหมดในระบบ</small></span>
+            <span className="dashboard-kpi-badge primary"><BarChart3 size={14} /> ทั้งหมด</span>
           </div>
-        )}
+          <div className="dashboard-card-footer">
+            <span className="dashboard-card-note primary"><ClipboardCheck size={15} /> ผลพยากรณ์ทั้งหมด</span>
+            <div className="dashboard-card-metric">
+              <div className="dashboard-kpi-value primary">{formatNum(total)}</div>
+              <div className="dashboard-kpi-unit">ครั้ง</div>
+            </div>
+          </div>
+        </div>
 
-        {chartType === 'line' && (
-          <div style={{ width: '100%', height: 150, padding: '6px 0' }}>
-            <LineChart data={barData} height={120} />
-          </div>
-        )}
+        <button type="button" className="feature-card dashboard-about-card" onClick={onNavigateDiseaseInfo}>
+          <img className="dashboard-card-art" src="/stroke-brain-artery-transparent.png" alt="" aria-hidden="true" />
+          <span className="dashboard-card-head">
+            <span className="dashboard-card-icon primary"><Brain size={27} /></span>
+            <span className="dashboard-card-title">เกี่ยวกับโรคหลอดเลือดสมอง</span>
+            <span className="dashboard-about-arrow"><ArrowRight size={21} /></span>
+          </span>
+          <span className="dashboard-about-description">รู้จักชนิดของโรค อาการเตือน การป้องกัน<br />และแนวทางการรักษา</span>
+          <span className="dashboard-about-link">อ่านข้อมูลเพิ่มเติม <ArrowRight size={16} /></span>
+        </button>
       </div>
 
+      <div className="dashboard-detail-grid">
+        <div className="feature-card dashboard-distribution-card">
+          <div className="dashboard-distribution-heading">
+            <div className="dashboard-section-title">
+              <span className="dashboard-section-icon"><BarChart3 size={24} /></span>
+              <span><h3>สัดส่วนประเภทโรค</h3><small>การกระจายของผลการพยากรณ์ทั้งหมด</small></span>
+            </div>
+            <div className="dashboard-chart-switcher" aria-label="รูปแบบแผนภูมิ">
+              {[
+                { id: 'donut', label: 'Donut' },
+                { id: 'bar', label: 'Bar' },
+                { id: 'line', label: 'Line' },
+              ].map(ct => <button type="button" key={ct.id} className={chartType === ct.id ? 'active' : ''} onClick={() => setChartType(ct.id)}>{ct.label}</button>)}
+            </div>
+          </div>
+          {chartType === 'donut' && <div className="dashboard-donut-content">
+            <DonutChart data={donutData} size={208} />
+            <div className="dashboard-donut-legend">
+              {donutData.map(d => <div className="dashboard-legend-row" key={d.label} title={d.label}>
+                <span className="dashboard-legend-dot" style={{ background: d.color }} />
+                <span className="dashboard-legend-label">{d.shortLabel}</span>
+                <span className="dashboard-legend-values"><strong>{d.pct}%</strong><small>{formatNum(d.value)} ครั้ง</small></span>
+              </div>)}
+            </div>
+          </div>}
+          {chartType === 'bar' && <div className="dashboard-compact-chart"><BarChart data={barData} height={160} compact /></div>}
+          {chartType === 'line' && <div className="dashboard-compact-chart"><LineChart data={barData} height={170} /></div>}
+        </div>
+
       {/* Recent Predictions Activity Section */}
-      <div className="feature-card" style={{ padding: 24, marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
-          <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Clock size={18} color="#1877f2" /> ประวัติการพยากรณ์ล่าสุด 5 รายการ
-          </h3>
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', background: '#f1f5f9', padding: '3px 8px', borderRadius: 6 }}>
-            ล่าสุด
-          </span>
+      <div className="feature-card dashboard-history-card">
+        <div className="dashboard-history-heading">
+          <div className="dashboard-section-title">
+            <span className="dashboard-section-icon"><Clock size={24} /></span>
+            <span><h3>ประวัติการพยากรณ์ล่าสุด 5 รายการ</h3><small>รายการพยากรณ์ล่าสุดจากระบบ</small></span>
+          </div>
+          <button type="button" className="dashboard-view-all" onClick={onNavigateDataset}>ดูทั้งหมด <ArrowRight size={16} /></button>
         </div>
 
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <table className="dashboard-history-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
                   <th style={{ padding: '10px 12px', fontWeight: 800, color: '#475569' }}>วันที่/เวลา</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 800, color: '#475569' }}>รหัสผู้ป่วย</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 800, color: '#475569' }}>ชื่อผู้ป่วย</th>
                   <th style={{ padding: '10px 12px', fontWeight: 800, color: '#475569', textAlign: 'center' }}>ผลลัพธ์</th>
                   <th style={{ padding: '10px 12px', fontWeight: 800, color: '#475569', textAlign: 'center' }}>จัดการ</th>
                 </tr>
@@ -926,6 +909,8 @@ function DashboardView({ onNavigatePredict }) {
             </table>
           </div>
         </div>
+
+      </div>
 
       {/* Patient Detail Modal */}
       {selectedPatient && (
@@ -1141,68 +1126,46 @@ function DiseaseInfoView() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {/* Main Definition Card */}
           <div className="feature-card" style={{ padding: '28px 34px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#eff6ff', display: 'grid', placeItems: 'center' }}>
-                <Brain size={26} color="#2563eb" />
-              </div>
+            <div className="stroke-overview-heading">
+              <div className="stroke-overview-icon"><Brain size={26} color="#2563eb" /></div>
               <div>
-                <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', margin: 0 }}>
-                  โรคหลอดเลือดสมอง หรือ Stroke คืออะไร?
-                </h3>
-                <div style={{ fontSize: 13, color: '#64748b' }}>ภาวะฉุกเฉินทางการแพทย์ที่ต้องได้รับการรักษาอย่างเร่งด่วน</div>
+                <h3>โรคหลอดเลือดสมองแบ่งได้เป็น 2 ชนิด</h3>
+                <div>ภาวะฉุกเฉินทางการแพทย์ที่ต้องได้รับการรักษาอย่างเร่งด่วน</div>
               </div>
             </div>
+
+            <p className="stroke-definition">
+              <strong>โรคหลอดเลือดสมอง หรือ Stroke</strong> คือ ภาวะสมองขาดเลือดที่เกิดจากหลอดเลือดสมองตีบ/อุดตันหรือมีเลือดออกในสมอง ทำให้เลือดไปเลี้ยงสมองไม่เพียงพอและเซลล์สมองขาดออกซิเจน ผู้ป่วยควรได้รับการรักษาอย่างเร่งด่วนเพื่อลดความเสียหายและภาวะแทรกซ้อน
+            </p>
 
             <div className="stroke-intro">
-              <div className="stroke-intro-copy">
-                <span className="stroke-intro-label">รู้จักโรคหลอดเลือดสมอง</span>
+              <section className="stroke-type-section ischemic">
+                <div className="stroke-type-heading">
+                  <h5><span className="stroke-number">1</span><Activity size={18} /> โรคหลอดเลือดสมองตีบหรืออุดตันเฉียบพลัน (Ischemic Stroke)</h5>
+                  <span>พบมากที่สุด ~80–90%</span>
+                </div>
                 <p>
-                  <strong>โรคหลอดเลือดสมอง หรือ Stroke</strong> คือ ภาวะสมองขาดเลือดที่เกิดจากหลอดเลือดสมองตีบ/อุดตันหรือมีเลือดออกในสมอง หรืออาการเส้นเลือดในสมองตีบ ทำให้เลือดไม่สามารถไปเลี้ยงสมองได้ ทำให้เซลล์สมองขาดออกซิเจน ส่งผลให้สมองตาย ผู้ป่วยจำเป็นต้องพบแพทย์ทันที การรักษาอย่างรีบด่วนเป็นสิ่งสำคัญมาก เพราะช่วยลดความรุนแรงจากภาวะสมองตาย และรวมถึงลดภาวะแทรกซ้อนอื่นๆ และยังป้องกันความพิการและทุพพลภาพที่จะเกิดขึ้น
+                  พบประมาณ 80-90% ของผู้ป่วยอัมพฤกษ์อัมพาต เกิดจากความผิดปกติของหลอดเลือดแดงที่ไปเลี้ยงสมองตีบหรืออุดตัน ซึ่งเป็นผลจากการที่ผู้ป่วยมีปัจจัยเสี่ยงต่างๆ เช่น <strong>โรคความดันโลหิตสูง โรคเบาหวาน การบริโภคอาหารที่มีไขมันสูง การสูบบุหรี่ และการขาดการออกกำลังกายอย่างสม่ำเสมอ</strong> ผู้ป่วยที่มีปัจจัยเสี่ยงดังกล่าวอยู่เป็นเวลานานจะทำให้ผนังหลอดเลือดหนาและแข็งตัว เกิดการตีบหรืออุดตัน ทำให้สมองขาดเลือดและเกิดอัมพาตตามมาในที่สุด โดยผู้ป่วยเหล่านี้อาจมีโรคหลอดเลือดหัวใจหรือหลอดเลือดส่วนปลายแขนขาตีบร่วมด้วย นอกจากนี้ยังอาจพบสาเหตุของเส้นเลือดสมองอุดตันจากเหตุอื่นๆ เช่น <strong>ภาวะหัวใจเต้นผิดจังหวะบางชนิด หรือโรคเลือดบางชนิด เช่น ภาวะเลือดข้นผิดปกติ</strong>
                 </p>
-                <div className="stroke-intro-note"><AlertTriangle size={17} /> เป็นภาวะฉุกเฉิน ควรรีบพบแพทย์ทันทีเมื่อมีอาการ</div>
-              </div>
+              </section>
+
               <img
                 className="stroke-intro-image"
-                src="/stroke-brain.jpg"
-                alt="ภาพประกอบภาวะโรคหลอดเลือดสมอง"
+                src="/stroke-brain-cutout.png"
+                alt="ภาพประกอบโรคหลอดเลือดสมองและหลอดเลือดสมอง"
               />
+
+              <section className="stroke-type-section hemorrhagic">
+                <div className="stroke-type-heading">
+                  <h5><span className="stroke-number">2</span><AlertTriangle size={18} /> โรคหลอดเลือดสมองแตก (Hemorrhagic Stroke)</h5>
+                  <span>ความรุนแรงสูง / อัตราเสียชีวิตสูง</span>
+                </div>
+                <p>
+                  ภาวะนี้มักสัมพันธ์กับ <strong>โรคความดันโลหิตสูง</strong> ที่ไม่ได้รับการรักษาเป็นเวลานาน นอกจากนี้ยังอาจสัมพันธ์กับปัจจัยอื่นๆ เช่น <strong>การดื่มแอลกอฮอล์ รวมทั้งยาบางชนิด</strong> โดยการแตกของหลอดเลือดจะทำให้เกิดก้อนเลือดไปกดทับเนื้อสมอง ส่งผลให้เนื้อสมองตายและทำงานผิดปกติเฉียบพลัน
+                </p>
+              </section>
             </div>
 
-            <h4 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 14, paddingBottom: 8, borderBottom: '2px solid #d1e0e8' }}>
-              โรคหลอดเลือดสมอง แบ่งได้เป็น 2 ชนิด คือ
-            </h4>
-
-            <div>
-              {/* Type 1: ตีบ/อุดตัน */}
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <h5 style={{ fontSize: 16, fontWeight: 900, color: '#9a3412', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Activity size={18} color="#ea580c" /> 1. โรคหลอดเลือดสมองตีบหรืออุดตันเฉียบพลัน (Ischemic Stroke)
-                  </h5>
-                  <span style={{ fontSize: 12, fontWeight: 800, background: '#fff7ed', color: '#ea580c', padding: '3px 10px', borderRadius: 6, border: '1px solid #fed7aa' }}>
-                    พบมากที่สุด ~80-90%
-                  </span>
-                </div>
-                <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.7, margin: 0 }}>
-                  พบประมาณ 80-90% ของผู้ป่วยอัมพฤกษ์อัมพาต เกิดจากความผิดปกติของหลอดเลือดแดงที่ไปเลี้ยงสมองตีบหรืออุดตัน ซึ่งเป็นผลจากการที่ผู้ป่วยมีปัจจัยเสี่ยงต่างๆ เช่น <strong>โรคความดันโลหิตสูง, โรคเบาหวาน, การบริโภคอาหารที่มีไขมันสูง, การสูบบุหรี่, การขาดการออกกำลังกายอย่างสม่ำเสมอ</strong> ผู้ป่วยที่มีปัจจัยเสี่ยงดังกล่าวอยู่เป็นเวลานานจะเป็นผลให้ผนังหลอดเลือดหนาและแข็งตัว เกิดการตีบหรืออุดตัน ทำให้สมองขาดเลือดเกิดอัมพาตตามมาในที่สุด โดยผู้ป่วยเหล่านี้อาจมีโรคหลอดเลือดหัวใจหรือหลอดเลือดส่วนปลายแขนขาตีบร่วมด้วย นอกจากนี้ ยังอาจพบสาเหตุของการเกิดเส้นเลือดสมองอุดตันได้จากเหตุอื่นๆอีก เช่น <strong>ภาวะหัวใจเต้นผิดจังหวะบางชนิด, โรคเลือดบางชนิด เช่น ภาวะเลือดข้นผิดปกติ</strong>
-                </p>
-              </div>
-
-              {/* Type 2: แตก */}
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <h5 style={{ fontSize: 16, fontWeight: 900, color: '#991b1b', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <AlertTriangle size={18} color="#dc2626" /> 2. โรคหลอดเลือดสมองแตก (Hemorrhagic Stroke)
-                  </h5>
-                  <span style={{ fontSize: 12, fontWeight: 800, background: '#fef2f2', color: '#dc2626', padding: '3px 10px', borderRadius: 6, border: '1px solid #fecaca' }}>
-                    ความรุนแรงสูง / อัตราเสียชีวิตสูง
-                  </span>
-                </div>
-                <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.7, margin: 0 }}>
-                  ภาวะนี้มักสัมพันธ์กับ <strong>โรคความดันโลหิตสูง</strong> ที่ไม่ได้รับการรักษาอยู่เป็นเวลานาน นอกจากนี้ยังอาจสัมพันธ์กับปัจจัยอื่นๆ เช่น <strong>การดื่มแอลกอฮอล์ รวมทั้งยาบางชนิด</strong> โดยการแตกของหลอดเลือดจะทำให้เกิดก้อนเลือดไปกดทับเนื้อสมอง ส่งผลให้เนื้อสมองตายและทำงานผิดปกติเฉียบพลัน
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       )}
@@ -1227,7 +1190,7 @@ function DiseaseInfoView() {
               อาการของโรคหลอดเลือดสมองมักเกิดขึ้นอย่างเฉียบพลัน ซึ่งสามารถสังเกตอาการเตือนและจดจำได้ง่ายตามหลักการ <strong>B.E.F.A.S.T.</strong> ดังนี้:
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14, marginBottom: 22 }}>
+            <div className="be-fast-grid">
               {[
                 { letter: 'B', word: 'Balance (การทรงตัว)', desc: 'การทรงตัวของร่างกายผิดปกติ ไม่สามารถทรงตัวได้ เดินเซ วิงเวียนศีรษะเฉียบพลัน', color: '#0284c7', bg: '#f0f9ff' },
                 { letter: 'E', word: 'Eye (การมองเห็น)', desc: 'ตามัวหรือมองไม่เห็นอย่างเฉียบพลัน ลานสายตาผิดปกติ มองเห็นภาพซ้อน', color: '#0369a1', bg: '#e0f2fe' },
@@ -1235,41 +1198,20 @@ function DiseaseInfoView() {
                 { letter: 'A', word: 'Arm (แขนขาอ่อนแรง)', desc: 'แขนขาอ่อนแรงครึ่งซีก ไม่มีแรงหรือชาอย่างเฉียบพลันที่แขนหรือขาซีกใดซีกหนึ่งของร่างกาย ยกแขนไม่ขึ้น', color: '#ea580c', bg: '#fff7ed' },
                 { letter: 'S', word: 'Speech (การพูด)', desc: 'การพูด การสื่อสารผิดปกติเฉียบพลัน เช่น การพูดไม่รู้เรื่อง พูดไม่ชัด ลิ้นแข็ง ฟังไม่เข้าใจ', color: '#7c3aed', bg: '#faf5ff' },
                 { letter: 'T', word: 'Time (เวลาเร่งด่วน)', desc: 'เวลาที่เริ่มมีอาการผิดปกติ เมื่อสงสัยภาวะโรคหลอดเลือดสมองเฉียบพลัน ให้รีบพาผู้ป่วยไปโรงพยาบาลให้เร็วที่สุด หรือโทร. 1669 ทันที!', color: '#dc2626', bg: '#fef2f2' },
-              ].map((item, idx) => (
-                <div 
-                  key={idx} 
-                  style={{
-                    background: item.bg,
-                    border: `1.5px solid ${item.color}44`,
-                    borderRadius: 12,
-                    padding: '16px 18px',
-                    display: 'flex',
-                    gap: 14,
-                    alignItems: 'flex-start'
-                  }}
+              ].map((item) => (
+                <div
+                  key={item.letter}
+                  className="be-fast-card"
+                  style={{ '--be-fast-color': item.color, '--be-fast-bg': item.bg }}
                 >
-                  <div style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 10,
-                    background: item.color,
-                    color: '#ffffff',
-                    display: 'grid',
-                    placeItems: 'center',
-                    fontWeight: 900,
-                    fontSize: 22,
-                    flexShrink: 0
-                  }}>
-                    {item.letter}
+                  <div className="be-fast-card-heading">
+                    <div className="be-fast-card-letter">{item.letter}</div>
+                    <div className="be-fast-card-title">{item.word}</div>
                   </div>
-                  <div>
-                    <div style={{ fontWeight: 800, fontSize: 15, color: item.color, marginBottom: 4 }}>
-                      {item.word}
-                    </div>
-                    <div style={{ fontSize: 13, color: '#334155', lineHeight: 1.5 }}>
-                      {item.desc}
-                    </div>
+                  <div className="be-fast-card-art">
+                    <BeFastIllustration type={item.letter} />
                   </div>
+                  <div className="be-fast-card-description">{item.desc}</div>
                 </div>
               ))}
             </div>
@@ -1286,87 +1228,7 @@ function DiseaseInfoView() {
       )}
 
       {/* CONTENT: หน้าที่ 3 (เคล็ดลับป้องกันโรคหลอดเลือดสมอง) */}
-      {activeSubTab === 'prevention' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div className="feature-card" style={{ padding: '28px 34px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#f0fdf4', display: 'grid', placeItems: 'center' }}>
-                <ShieldCheck size={26} color="#16a34a" />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', margin: 0 }}>
-                  เคล็ดลับป้องกันโรคหลอดเลือดสมอง (Prevention)
-                </h3>
-                <div style={{ fontSize: 13, color: '#16a34a', fontWeight: 700 }}>
-                  90% ของโรคหลอดเลือดสมอง สามารถป้องกันได้ด้วยการปรับเปลี่ยนพฤติกรรม
-                </div>
-              </div>
-            </div>
-
-            <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.7, marginBottom: 20 }}>
-              ร้อยละ 90 ของโรคหลอดเลือดสมองสามารถป้องกันได้โดยการปรับเปลี่ยนพฤติกรรมการใช้ชีวิต เช่น รับประทานอาหารที่ดีต่อสุขภาพ ออกกำลังกาย ผ่อนคลายความเครียด และควบคุมปัจจัยเสี่ยงต่าง ๆ อย่างเคร่งครัด
-            </p>
-
-            <div className="grid-2" style={{ gap: 24, marginBottom: 24 }}>
-              {/* 1. โภชนาการ */}
-              <div>
-                <h4 style={{ fontSize: 15, fontWeight: 800, color: '#15803d', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  รับประทานอาหารที่ดีต่อสุขภาพ
-                </h4>
-                <ul style={{ paddingLeft: 18, fontSize: 13, color: '#475569', lineHeight: 1.7, margin: 0 }}>
-                  <li>เน้นอาหารที่มีเส้นใยสูง และไขมันต่ำ</li>
-                  <li>ลดหวาน มัน เค็ม: โซเดียมไม่เกิน 2,000 มก./วัน</li>
-                  <li>น้ำตาลไม่เกิน 6 ช้อนชาต่อวัน, น้ำมันไม่เกิน 6 ช้อนชาต่อวัน</li>
-                  <li>ใช้น้ำมันไม่อิ่มตัว เช่น น้ำมันมะกอก น้ำมันคาโนล่า น้ำมันรำข้าว ถั่วเมล็ดแห้ง และปลาทะเล</li>
-                </ul>
-              </div>
-
-              {/* 2. ออกกำลังกาย & งดบุหรี่/แอลกอฮอล์ */}
-              <div>
-                <h4 style={{ fontSize: 15, fontWeight: 800, color: '#0369a1', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  ออกกำลังกายและปรับพฤติกรรม
-                </h4>
-                <ul style={{ paddingLeft: 18, fontSize: 13, color: '#475569', lineHeight: 1.7, margin: 0 }}>
-                  <li>ออกกำลังกายอย่างน้อยวันละ 30 นาที สม่ำเสมอ</li>
-                  <li>ผ่อนคลายความเครียด และนอนหลับพักผ่อนให้เพียงพอ</li>
-                  <li>งดเครื่องดื่มแอลกอฮอล์</li>
-                  <li><strong>งดสูบบุหรี่เด็ดขาด</strong> (ผู้สูบบุหรี่มีความเสี่ยงสูงกว่าปกติถึง 2 เท่า)</li>
-                </ul>
-              </div>
-            </div>
-
-            {/* 3. เป้าหมายการควบคุมปัจจัยเสี่ยง */}
-            <h4 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 14, paddingBottom: 8, borderBottom: '2px solid #d1e0e8' }}>
-              เป้าหมายการควบคุมปัจจัยเสี่ยงทางการแพทย์
-            </h4>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 24 }}>
-              {[
-                { title: 'ดัชนีมวลกาย (BMI)', target: '< 25 kg/m²', note: 'ควบคุมน้ำหนักตัวให้อยู่ในเกณฑ์มาตรฐาน', color: '#16a34a' },
-                { title: 'ความดันโลหิต', target: '≤ 130/80 mmHg', note: 'ตรวจวัดความดันสม่ำเสมอ', color: '#0284c7' },
-                { title: 'น้ำตาลในเลือด', target: '≤ 140 mg/dL', note: 'HbA1C < 6.5% ในผู้ป่วยเบาหวาน', color: '#d97706' },
-                { title: 'คอเลสเตอรอลรวม', target: '< 200 mg/dL', note: 'ควบคุมไขมันในกระแสเลือด', color: '#ea580c' },
-                { title: 'ตรวจ EKG (> 50 ปี)', target: 'จังหวะหัวใจปกติ', note: 'คัดกรองภาวะหัวใจเต้นพริ้ว (AF)', color: '#7c3aed' },
-              ].map((m, idx) => (
-                <div key={idx} style={{ padding: '4px 8px' }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#64748b', marginBottom: 4 }}>{m.title}</div>
-                  <div style={{ fontSize: 17, fontWeight: 900, color: m.color, marginBottom: 4 }}>{m.target}</div>
-                  <div style={{ fontSize: 12, color: '#475569' }}>{m.note}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* 4. ปัจจัยเสี่ยงที่ป้องกันไม่ได้ */}
-            <div style={{ background: '#fffbeb', border: '1.5px solid #fef08a', borderRadius: 12, padding: '18px 22px' }}>
-              <h4 style={{ fontSize: 15, fontWeight: 800, color: '#b45309', margin: '0 0 8px' }}>
-                ปัจจัยเสี่ยงที่ไม่สามารถป้องกันได้
-              </h4>
-              <p style={{ fontSize: 13, color: '#78350f', lineHeight: 1.7, margin: 0 }}>
-                นอกจากปัจจัยเสี่ยงที่ป้องกันได้ ยังมีปัจจัยเสี่ยงที่ไม่สามารถป้องกันได้ เช่น <strong>อายุที่มากขึ้น</strong> ทำให้หลอดเลือดเสื่อมตามวัย ผนังหลอดเลือดหนาและแข็งตัวจากการเกาะของไขมันและหินปูน, <strong>เพศ</strong> (พบว่าเพศชายมีความเสี่ยงสูงกว่าเพศหญิง), และ <strong>พันธุกรรม/ประวัติครอบครัว</strong> ดังนั้นจึงควรหมั่นสังเกตอาการอย่างสม่ำเสมอ หากสงสัยให้รีบพบแพทย์ทันที
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {activeSubTab === 'prevention' && <PreventionView />}
 
       {/* CONTENT: หน้าที่ 4 (แนวทางการรักษาโรคหลอดเลือดสมอง Treatment) */}
       {activeSubTab === 'treatment' && (
@@ -1396,9 +1258,28 @@ function DiseaseInfoView() {
 
             {/* แนวทางการรักษา 2 กรณี */}
             <h4 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 14, paddingBottom: 8, borderBottom: '2px solid #d1e0e8' }}>
-              แนวทางการรักษาแบ่งตามชนิดของโรค
+              แนวทางการรักษาแบ่งเป็น 2 กรณี
             </h4>
+            <div className="treatment-case-grid">
+              <article className="treatment-case treatment-case-ischemic">
+                <div className="treatment-case-copy">
+                  <span className="treatment-case-number">กรณีที่ 1</span>
+                  <h5>โรคหลอดเลือดสมองตีบหรืออุดตันเฉียบพลัน</h5>
+                  <p>ต้องทำการเปิดหลอดเลือดอย่างเร่งด่วน สามารถทำได้ 2 วิธี ขึ้นอยู่กับระยะเวลาที่เกิดอาการ ข้อบ่งชี้ และข้อห้ามของการรักษา</p>
+                </div>
+                <img src="/treatment-ischemic-cutout.png" alt="ภาพหลอดเลือดสมองตีบหรืออุดตัน" />
+              </article>
+              <article className="treatment-case treatment-case-hemorrhagic">
+                <div className="treatment-case-copy">
+                  <span className="treatment-case-number">กรณีที่ 2</span>
+                  <h5>โรคหลอดเลือดสมองแตก</h5>
+                  <p>ปรึกษาแพทย์ศัลยกรรมระบบประสาท เพื่อวางแผนการรักษาว่าจำเป็นต้องได้รับการผ่าตัดหรือไม่</p>
+                </div>
+                <img src="/treatment-hemorrhagic-cutout.png" alt="ภาพหลอดเลือดสมองแตก" />
+              </article>
+            </div>
 
+            <h4 className="treatment-method-heading">วิธีเปิดหลอดเลือดสำหรับกรณีที่ 1</h4>
             {/* วิธีที่ 1: ยาสลายลิ่มเลือด rt-PA */}
             <div style={{ marginBottom: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -1615,11 +1496,11 @@ function PredictView() {
     <div>
       <div className="hero-band" style={{ marginBottom: 24 }}>
         <div>
-          <span className="eyebrow">PREDICTION WIZARD</span>
+          <span className="eyebrow">PREDICTION PROCESS</span>
           <h2>พยากรณ์ความเสี่ยงโรคหลอดเลือดสมอง</h2>
           <p>กรอกข้อมูลผู้ป่วย 3 ขั้นตอนเพื่อรับผลการประเมินความเสี่ยง</p>
         </div>
-        <div className="hero-illustration"><Brain size={60} /></div>
+        <div className="hero-illustration"><ClipboardCheck size={60} /></div>
       </div>
 
       <div className="stepper-container" style={{ marginBottom: 28 }}>
@@ -1671,54 +1552,43 @@ function PredictView() {
         {/* STEP 2 */}
         {step === 2 && (
           <div>
-            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#071838', marginBottom: 20 }}>ขั้นที่ 2: ข้อมูลสุขภาพและอาการ</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0718388', marginBottom: 20 }}>ขั้นที่ 2: ข้อมูลสุขภาพและอาการ</h3>
             <div className="grid-2" style={{ gap: 24 }}>
               <div>
-                <p style={{ fontSize: 14, fontWeight: 800, color: '#1877f2', marginBottom: 12 }}>ปัจจัยเสี่ยงโรคหลอดเลือดสมองตีบ/อุดตัน</p>
-                <div className="check-group">
-                  {[
-                    { key: 'has_diabetes', label: 'เบาหวาน (Diabetes)' },
-                    { key: 'ekg_result', label: 'ผลคลื่นไฟฟ้าหัวใจ (EKG) ผิดปกติ' },
-                  ].map(({ key, label }) => (
-                    <label key={key} className={`check-row ${form[key] ? 'checked' : ''}`}>
-                      <input type="checkbox" checked={form[key]} onChange={e => set(key, e.target.checked)} />
-                      <span>{label}</span>
-                    </label>
-                  ))}
-                </div>
-                <p style={{ fontSize: 14, fontWeight: 800, color: '#dc2626', margin: '18px 0 10px' }}>ปัจจัยเสี่ยงโรคหลอดเลือดสมองแตก</p>
-                <div className="check-group">
-                  <label className={`check-row ${form.stress_management ? 'checked' : ''}`}>
-                    <input type="checkbox" checked={form.stress_management} onChange={e => set('stress_management', e.target.checked)} />
-                    <span>มีความเครียดสูง</span>
-                  </label>
-                </div>
-
-                <p style={{ fontSize: 14, fontWeight: 800, color: '#071838', margin: '18px 0 10px' }}>ปัจจัยเสี่ยงร่วม</p>
-                <div className="check-group">
-                  {[
-                    { key: 'has_hypertension', label: 'ความดันโลหิตสูง (Hypertension)' },
-                    { key: 'previous_stroke_tia', label: 'ประวัติโรคหลอดเลือดสมอง/TIA' },
-                    { key: 'has_ckd', label: 'โรคไตเรื้อรัง (CKD)' },
-                    { key: 'smoking', label: 'สูบบุหรี่' },
-                    { key: 'alcohol', label: 'ดื่มแอลกอฮอล์' },
-                  ].map(({ key, label }) => (
-                    <label key={key} className={`check-row ${form[key] ? 'checked' : ''}`}>
-                      <input type="checkbox" checked={form[key]} onChange={e => set(key, e.target.checked)} />
-                      <span>{label}</span>
-                    </label>
-                  ))}
-                </div>
-
-              </div>
-
-              <div>
-                <p style={{ fontSize: 14, fontWeight: 800, color: '#1877f2', marginBottom: 12 }}>ค่าตรวจสุขภาพ</p>
+                <p style={{ fontSize: 14, fontWeight: 800, color: '#0e0e0f', marginBottom: 12 }}>ค่าตรวจสุขภาพ</p>
                 <div className="field"><span>ความดันโลหิตตัวบน Systolic BP (mmHg)</span><input type="number" placeholder="เช่น 140" value={form.systolic_bp} onChange={e => { setError(''); set('systolic_bp', e.target.value); }} /></div>
                 <div className="field"><span>ความดันโลหิตตัวล่าง Diastolic BP (mmHg)</span><input type="number" placeholder="เช่น 90" value={form.diastolic_bp} onChange={e => { setError(''); set('diastolic_bp', e.target.value); }} /></div>
                 <div className="field"><span>น้ำตาลในเลือด Blood Sugar (mg/dL)</span><input type="number" placeholder="เช่น 100" value={form.blood_sugar} onChange={e => { setError(''); set('blood_sugar', e.target.value); }} /></div>
-                <div className="field"><span>ระดับคอเลสเตอรอล (mg/dL)</span><input type="number" placeholder="เช่น 200" value={form.cholesterol} onChange={e => { setError(''); set('cholesterol', e.target.value); }} /></div>
-                <p style={{ fontSize: 14, fontWeight: 800, color: '#071838', margin: '18px 0 10px' }}>อาการที่พบ</p>
+                <div className="field"><span>ไขมันในเลือด Cholesterol (mg/dL)</span><input type="number" placeholder="เช่น 200" value={form.cholesterol} onChange={e => { setError(''); set('cholesterol', e.target.value); }} /></div>
+
+                <p style={{ fontSize: 14, fontWeight: 800, color: '#071838', margin: '18px 0 10px' }}>ประวัติโรค (สามารถเลือกได้หลายรายการ)</p>
+                <div className="check-group">
+                  {[
+                    { key: 'has_diabetes', label: 'เบาหวาน (Diabetes)', risk: '(ปัจจัยเสี่ยงต่อโรคหลอดเลือดสมองตีบ/อุดตัน)', riskClass: 'risk-ischemic' },
+                    { key: 'has_hypertension', label: 'ความดันโลหิตสูง (Hypertension)', risk: '(ปัจจัยเสี่ยงร่วม)', riskClass: 'risk-shared' },
+                    { key: 'has_dyslipidemia', label: 'ไขมันในเลือดสูง (Dyslipidemia)', risk: '(ปัจจัยเสี่ยงร่วม)', riskClass: 'risk-shared' },
+                  ].map(({ key, label, risk, riskClass }) => (
+                    <label key={key} className={`check-row ${form[key] ? 'checked' : ''}`}>
+                      <input type="checkbox" checked={form[key]} onChange={e => set(key, e.target.checked)} />
+                      <span>{label} <span className={`risk-type ${riskClass}`}>{risk}</span></span>
+                    </label>
+                  ))}
+                </div>
+                <div className="check-group">
+                  {[
+                    { key: 'previous_stroke_tia', label: 'ประวัติโรคหลอดเลือดสมอง/TIA', risk: '(ปัจจัยเสี่ยงร่วม)', riskClass: 'risk-shared' },
+                    { key: 'has_ckd', label: 'โรคไตเรื้อรัง (CKD)', risk: '(ปัจจัยเสี่ยงร่วม)', riskClass: 'risk-shared' },
+                  ].map(({ key, label, risk, riskClass }) => (
+                    <label key={key} className={`check-row ${form[key] ? 'checked' : ''}`}>
+                      <input type="checkbox" checked={form[key]} onChange={e => set(key, e.target.checked)} />
+                      <span>{label} <span className={`risk-type ${riskClass}`}>{risk}</span></span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 800, color: '#071838', marginBottom: 10 }}>อาการที่พบ (สามารถเลือกได้หลายรายการ)</p>
                 <div className="check-group">
                   {[
                     { key: 'weakness_half_body', label: 'แขน/ขาอ่อนแรงครึ่งซีก' },
@@ -1726,10 +1596,25 @@ function PredictView() {
                     { key: 'blurred_vision', label: 'ตามัว/มองไม่เห็น' },
                     { key: 'sudden_headache', label: 'ปวดศีรษะรุนแรงเฉียบพลัน' },
                     { key: 'dizziness_vertigo', label: 'วิงเวียน/เสียการทรงตัว' },
+                    { key: 'numbness', label: 'อาการชา' },
                   ].map(({ key, label }) => (
                     <label key={key} className={`check-row ${form[key] ? 'checked' : ''}`}>
                       <input type="checkbox" checked={form[key]} onChange={e => set(key, e.target.checked)} />
                       <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
+                <p style={{ fontSize: 14, fontWeight: 800, color: '#071838', margin: '18px 0 10px' }}>พฤติกรรมและปัจจัยเสี่ยงอื่น (สามารถเลือกได้หลายรายการ)</p>
+                <div className="check-group">
+                  {[
+                    { key: 'ekg_result', label: 'EKG Result ผิดปกติ', risk: '(ปัจจัยเสี่ยงต่อโรคหลอดเลือดสมองตีบ/อุดตัน)', riskClass: 'risk-ischemic' },
+                    { key: 'stress_management', label: 'มีความเครียดสูง', risk: '(ปัจจัยเสี่ยงต่อโรคหลอดเลือดสมองแตก)', riskClass: 'risk-hemorrhagic' },
+                    { key: 'smoking', label: 'สูบบุหรี่', risk: '(ปัจจัยเสี่ยงร่วม)', riskClass: 'risk-shared' },
+                    { key: 'alcohol', label: 'ดื่มแอลกอฮอล์', risk: '(ปัจจัยเสี่ยงร่วม)', riskClass: 'risk-shared' },
+                  ].map(({ key, label, risk, riskClass }) => (
+                    <label key={key} className={`check-row ${form[key] ? 'checked' : ''}`}>
+                      <input type="checkbox" checked={form[key]} onChange={e => set(key, e.target.checked)} />
+                      <span>{label} <span className={`risk-type ${riskClass}`}>{risk}</span></span>
                     </label>
                   ))}
                 </div>
@@ -1779,10 +1664,11 @@ function PredictView() {
                   ['blurred_vision', 'ตามัว'],
                   ['sudden_headache', 'ปวดหัวเฉียบพลัน'],
                   ['dizziness_vertigo', 'วิงเวียน'],
+                  ['numbness', 'อาการชา'],
                 ].filter(([k]) => form[k]).map(([k, label]) => (
                   <span key={k} style={{ padding: '3px 10px', background: '#fde8e8', color: '#c0392b', borderRadius: 999, fontSize: 12, fontWeight: 700 }}>{label}</span>
                 ))}
-                {![...['weakness_half_body','speech_difficulty','blurred_vision','sudden_headache','dizziness_vertigo']].some(k => form[k]) && (
+                {![...['weakness_half_body','speech_difficulty','blurred_vision','sudden_headache','dizziness_vertigo','numbness']].some(k => form[k]) && (
                   <span style={{ fontSize: 12, color: '#7a9aac' }}>ไม่มีอาการ</span>
                 )}
               </div>
@@ -2253,6 +2139,9 @@ function DatasetView() {
   });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   async function loadRows() {
     setLoading(true);
@@ -2297,11 +2186,13 @@ function DatasetView() {
     setSaving(true); setMsg('');
     try {
       const method = modal === 'add' ? 'POST' : 'PUT';
+      const payload = { ...form };
+      if (modal !== 'add') delete payload.stroke_type;
       const res = await fetch(`${API}/api/dataset/`, {
         method,
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (data.success) { setModal(null); loadRows(); }
@@ -2310,10 +2201,22 @@ function DatasetView() {
     setSaving(false);
   }
 
-  async function handleDelete(id) {
-    if (!confirm('ยืนยันการลบข้อมูลผู้ป่วยนี้?')) return;
-    await fetch(`${API}/api/dataset/?id=${id}`, { method: 'DELETE', credentials: 'include' });
-    loadRows();
+  async function handleDelete() {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      const res = await fetch(`${API}/api/dataset/?id=${deleteTarget.id}`, { method: 'DELETE', credentials: 'include' });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'ไม่สามารถลบข้อมูลได้');
+      setDeleteTarget(null);
+      if (rows.length === 1 && page > 1) setPage(page - 1);
+      else loadRows();
+    } catch (error) {
+      setDeleteError(error.message || 'ไม่สามารถลบข้อมูลได้');
+    } finally {
+      setDeleting(false);
+    }
   }
 
   const setF = (k, v) => setForm(p => ({ ...p, [k]: v }));
@@ -2432,7 +2335,7 @@ function DatasetView() {
                     <td>
                       <div style={{ display: 'flex', gap: 4 }}>
                         <button className="action-btn" onClick={() => openEdit(row, idx)} title="แก้ไข"><Edit2 size={14} /></button>
-                        <button className="action-btn delete" onClick={() => handleDelete(row.id)} title="ลบ"><Trash2 size={14} /></button>
+                        <button className="action-btn delete" onClick={() => { setDeleteTarget({ id: row.id, name: pName }); setDeleteError(''); }} title="ลบ"><Trash2 size={14} /></button>
                       </div>
                     </td>
                   </tr>
@@ -2452,6 +2355,23 @@ function DatasetView() {
         </div>
       </div>
 
+      {deleteTarget && (
+        <div className="modal-overlay" role="presentation" onClick={e => { if (e.target === e.currentTarget && !deleting) setDeleteTarget(null); }}>
+          <div className="modal-content dataset-delete-dialog" role="alertdialog" aria-modal="true" aria-labelledby="dataset-delete-title" aria-describedby="dataset-delete-description">
+            <span className="dataset-delete-icon"><AlertTriangle size={28} /></span>
+            <h3 id="dataset-delete-title">ยืนยันการลบข้อมูลผู้ป่วย?</h3>
+            <p id="dataset-delete-description">คุณต้องการลบข้อมูลของ <strong>{deleteTarget.name}</strong> ใช่หรือไม่? เมื่อลบแล้วจะไม่สามารถกู้คืนได้</p>
+            {deleteError && <div className="error-box" role="alert">{deleteError}</div>}
+            <div className="modal-footer">
+              <button type="button" className="dataset-delete-cancel" onClick={() => setDeleteTarget(null)} disabled={deleting}>ยกเลิก</button>
+              <button type="button" className="dataset-delete-confirm" onClick={handleDelete} disabled={deleting}>
+                {deleting ? <><Loader2 size={16} className="spin" /> กำลังลบ...</> : <><Trash2 size={16} /> ยืนยันการลบ</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {modal && (
         <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setModal(null); }}>
           <div className="modal-content" style={{ maxWidth: 600 }}>
@@ -2463,11 +2383,15 @@ function DatasetView() {
             <div className="grid-2">
               <div className="field"><span>ชื่อผู้ป่วย (Patient Name)</span><input value={form.patient_id} onChange={e => setF('patient_id', e.target.value)} placeholder="กรอกชื่อผู้ป่วย" /></div>
               <div className="field"><span>ประเภทโรค</span>
-                <select value={form.stroke_type} onChange={e => setF('stroke_type', e.target.value)}>
-                  <option value="No_Stroke">No Stroke</option>
-                  <option value="Ischemic">Ischemic</option>
-                  <option value="Hemorrhagic">Hemorrhagic</option>
-                </select>
+                {modal === 'add' ? (
+                  <select value={form.stroke_type} onChange={e => setF('stroke_type', e.target.value)}>
+                    <option value="No_Stroke">No Stroke</option>
+                    <option value="Ischemic">Ischemic</option>
+                    <option value="Hemorrhagic">Hemorrhagic</option>
+                  </select>
+                ) : (
+                  <input type="text" value={form.stroke_type} readOnly aria-label="ประเภทโรค" />
+                )}
               </div>
               <div className="field"><span>Systolic BP (mmHg)</span><input type="number" value={form.systolic_bp} onChange={e => setF('systolic_bp', e.target.value)} /></div>
               <div className="field"><span>Diastolic BP (mmHg)</span><input type="number" value={form.diastolic_bp} onChange={e => setF('diastolic_bp', e.target.value)} /></div>
@@ -2653,7 +2577,7 @@ function App() {
   const adminTabs = visibleTabs.filter(t => t.adminOnly);
 
   const views = {
-    dashboard: <DashboardView onNavigatePredict={() => handleTabChange('predict')} />,
+    dashboard: <DashboardView onNavigatePredict={() => handleTabChange('predict')} onNavigateDiseaseInfo={() => handleTabChange('disease_info')} onNavigateDataset={() => handleTabChange('dataset')} />,
     disease_info: <DiseaseInfoView />,
     predict: <PredictView />,
     dataset: <DatasetView />,
@@ -2719,3 +2643,8 @@ function App() {
 }
 
 createRoot(document.getElementById('root')).render(<App />);
+
+
+
+
+

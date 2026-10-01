@@ -23,6 +23,7 @@ def to_bool_int(val):
 
 # Min-Max Scaling parameters based on the original dataset range
 MIN_MAX_SCALES = {
+    'age': (18.0, 95.0),
     'blood_sugar': (70.0, 276.0),
     'cholesterol': (100.0, 344.0),
     'systolic_bp': (100.0, 248.0),
@@ -130,10 +131,10 @@ def predict_stroke(request):
             except (ValueError, TypeError):
                 return JsonResponse({'error': f'ค่า {f} ไม่ถูกต้อง'}, status=400)
 
-        # Load the model (Randomforestv.pkl)
-        model_path = os.path.join(settings.BASE_DIR, "prediction", "ml_models", "Randomforestv.pkl")
+        # Load the model used by the prediction page.
+        model_path = os.path.join(settings.BASE_DIR, "prediction", "ml_models", "RandomforestmodeL.pkl")
         if not os.path.exists(model_path):
-            return JsonResponse({'error': 'ไม่พบไฟล์โมเดล Randomforestv.pkl'}, status=400)
+            return JsonResponse({'error': 'ไม่พบไฟล์โมเดล RandomforestmodeL.pkl'}, status=400)
         
         loaded_data = joblib.load(model_path)
         model = loaded_data["model"]
@@ -151,11 +152,16 @@ def predict_stroke(request):
             key_lower = feature.lower()
             val = input_data.get(feature)
             if val is None:
-                val = input_data.get(key_lower, 0)
+                val = input_data.get(key_lower)
+            if val is None and key_lower == 'loss_of_balance':
+                # The form combines dizziness and loss of balance in one checkbox.
+                val = input_data.get('dizziness_vertigo')
+            if val is None:
+                val = 0
 
             if key_lower in [
                 'weakness_half_body', 'speech_difficulty', 'blurred_vision', 
-                'sudden_headache', 'dizziness_vertigo', 'ekg_result', 
+                'sudden_headache', 'dizziness_vertigo', 'loss_of_balance', 'numbness', 'ekg_result', 
                 'has_diabetes', 'has_hypertension', 'has_dyslipidemia',
                 'previous_stroke_tia', 'has_ckd', 'smoking', 'alcohol', 'stress_management'
             ]:
@@ -656,11 +662,7 @@ def api_dataset(request):
                 item.has_hypertension = to_bool_int(data['has_hypertension'])
             if 'has_dyslipidemia' in data:
                 item.has_dyslipidemia = to_bool_int(data['has_dyslipidemia'])
-            if 'stroke_type' in data:
-                if hasattr(item, 'predicted_stroke_type'):
-                    item.predicted_stroke_type = data['stroke_type']
-                else:
-                    item.stroke_type = data['stroke_type']
+
             item.save()
             return JsonResponse({'success': True})
         except Exception as e:
@@ -710,4 +712,5 @@ def api_model_comparison(request):
         })
         
     return JsonResponse({'success': True, 'models': result})
+
 
