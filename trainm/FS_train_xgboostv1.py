@@ -11,6 +11,7 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
     f1_score,
+    roc_auc_score,
     classification_report,
     confusion_matrix,
 )
@@ -73,7 +74,7 @@ param_grid = {
     "subsample": [0.8, 1.0],
     "colsample_bytree": [0.8, 1.0],
     "gamma": [0, 1.0],
-    "reg_alpha": [0, 1.0],
+    "reg_alpha": [0, 0.5],
     "reg_lambda": [1.0, 2.0],
 }
 
@@ -161,16 +162,29 @@ print(f"บันทึกผลทุกชุดไปที่: {results_csv_
 # -----------------------------------------------------------------------
 y_pred = best_model.predict(X_test)
 
+# คำนวณความน่าจะเป็นของแต่ละ Class สำหรับ AUROC
+y_proba = best_model.predict_proba(X_test)
+
 accuracy = accuracy_score(y_test, y_pred)
 recall = recall_score(y_test, y_pred, average="macro", zero_division=0)
 precision = precision_score(y_test, y_pred, average="macro", zero_division=0)
 f1 = f1_score(y_test, y_pred, average="macro", zero_division=0)
+
+# คำนวณ AUROC บน Test Set (Multi-class OvR)
+auroc = roc_auc_score(
+    y_test,
+    y_proba,
+    multi_class="ovr",
+    average="macro",
+    labels=best_model.classes_
+)
 
 print("\n=== ผลการประเมินโมเดลบน Test set (30%) ===")
 print(f"Precision : {precision:.4f}  (macro average)")
 print(f"Accuracy  : {accuracy:.4f}")
 print(f"Recall    : {recall:.4f}  (macro average)")
 print(f"F1-score  : {f1:.4f}  (macro average)")
+print(f"AUROC     : {auroc:.4f}  (macro average, ovr)")
 
 print("\n=== Classification Report ===")
 print(classification_report(y_test, y_pred, target_names=[str(c) for c in label_encoder.classes_], zero_division=0))

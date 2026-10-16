@@ -10,18 +10,21 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
     f1_score,
+    roc_auc_score,
     classification_report,
     confusion_matrix,
 )
+
 from imblearn.pipeline import Pipeline as ImbPipeline
 from imblearn.over_sampling import SMOTE
+
 
 # -----------------------------------------------------------------------
 # 1) โหลดข้อมูล
 # -----------------------------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(BASE_DIR, "1989.csv")
-MODEL_PATH = os.path.join(BASE_DIR, "RandomforestmodeL.pkl")
+MODEL_PATH = os.path.join(BASE_DIR, "Modelrandomforest.pkl")
 TARGET_COL = "Stroke_Type"
 
 # คอลัมน์ที่ไม่ใช่ feature ทางการแพทย์
@@ -34,6 +37,7 @@ id_cols_present = [c for c in ID_COLS if c in df.columns]
 if id_cols_present:
     print("ตัดคอลัมน์รหัสผู้ป่วย (ไม่ใช่ feature) ออก:", id_cols_present)
 
+
 # -----------------------------------------------------------------------
 # 2) เตรียมข้อมูล (X, y)
 # -----------------------------------------------------------------------
@@ -41,6 +45,7 @@ X = df.drop(columns=[TARGET_COL] + id_cols_present)
 y_raw = df[TARGET_COL]
 
 print("Selected features:", list(X.columns))
+
 
 # -----------------------------------------------------------------------
 # กำหนด Class เอง
@@ -60,6 +65,7 @@ inverse_mapping = {
     1: "Ischemic",
     2: "Hemorrhagic"
 }
+
 
 # แปลง Stroke_Type เป็นตัวเลขตาม mapping
 y = y_raw.map(class_mapping)
@@ -82,6 +88,7 @@ print(y_raw.value_counts())
 print("\nจำนวน Class:")
 print(pd.Series(y).value_counts().sort_index())
 
+
 # -----------------------------------------------------------------------
 # 3) แบ่งข้อมูล Train 70% / Test 30%
 # -----------------------------------------------------------------------
@@ -97,15 +104,16 @@ X_train, X_test, y_train, y_test = train_test_split(
 print(f"\nจำนวนข้อมูล Train: {X_train.shape[0]} แถว")
 print(f"จำนวนข้อมูล Test : {X_test.shape[0]} แถว")
 
+
 # -----------------------------------------------------------------------
 # 4) Grid Search + Cross Validation (k=10)
 # -----------------------------------------------------------------------
 param_grid = {
-    "n_estimators": [100, 200],
+    "n_estimators": [100, 200, 300],
     "criterion": ["gini", "entropy"],
-    "max_depth": [None, 10],
-    "min_samples_split": [2, 5],
-    "min_samples_leaf": [5, 10],
+    "max_depth": [None, 5, 10],
+    "min_samples_split": [2, 4],
+    "min_samples_leaf": [1, 2],
     "class_weight": [None, "balanced"],
 }
 
@@ -122,6 +130,7 @@ print(
 )
 
 results = []
+
 
 for i, params in enumerate(all_combinations, start=1):
 
@@ -193,27 +202,34 @@ for i, params in enumerate(all_combinations, start=1):
     })
 
     print(f"Set {i}: {params}")
+
     print(
         f"  F1-score (macro)  : "
         f"{f1_macro_cv:.4f}"
     )
+
     print(
         f"  Precision (macro) : "
         f"{precision_macro_cv:.4f}"
     )
+
     print(
         f"  Recall (macro)    : "
         f"{recall_macro_cv:.4f}"
     )
+
     print(
         f"  ROC-AUC (ovr)     : "
         f"{roc_auc_cv:.4f}"
     )
+
     print(
         f"  Accuracy (train)  : "
         f"{train_accuracy:.4f}"
     )
+
     print("-" * 70)
+
 
 # -----------------------------------------------------------------------
 # เลือกโมเดลที่มี F1-macro สูงสุด
@@ -236,6 +252,16 @@ print(
     "Best Params :",
     best_result["params"]
 )
+
+
+# -----------------------------------------------------------------------
+# เพิ่ม Accuracy Train ของ Best Model
+# -----------------------------------------------------------------------
+print(
+    "Best Train Accuracy :",
+    round(best_result["train_accuracy"], 4)
+)
+
 
 print(
     "Best CV Score (f1_macro) :",
@@ -265,6 +291,7 @@ print(
         4
     )
 )
+
 
 # -----------------------------------------------------------------------
 # บันทึกผล Grid Search
@@ -297,10 +324,14 @@ print(
     f"{results_csv_path}"
 )
 
+
 # -----------------------------------------------------------------------
 # 5) ประเมินผลบน Test set (30%)
 # -----------------------------------------------------------------------
 y_pred = best_model.predict(X_test)
+
+# คำนวณความน่าจะเป็นของแต่ละ Class สำหรับ AUROC
+y_proba = best_model.predict_proba(X_test)
 
 accuracy = accuracy_score(
     y_test,
@@ -328,6 +359,15 @@ f1 = f1_score(
     zero_division=0
 )
 
+# คำนวณ AUROC บน Test Set (Multi-class OvR)
+auroc = roc_auc_score(
+    y_test,
+    y_proba,
+    multi_class="ovr",
+    average="macro",
+    labels=best_model.classes_
+)
+
 print(
     "\n=== ผลการประเมินโมเดลบน Test set (30%) ==="
 )
@@ -351,6 +391,12 @@ print(
     f" (macro average)"
 )
 
+print(
+    f"AUROC     : {auroc:.4f} "
+    f" (macro average, ovr)"
+)
+
+
 # -----------------------------------------------------------------------
 # Classification Report
 # -----------------------------------------------------------------------
@@ -370,6 +416,7 @@ print(
     )
 )
 
+
 # -----------------------------------------------------------------------
 # Confusion Matrix
 # -----------------------------------------------------------------------
@@ -388,6 +435,7 @@ print("Class 0 = No Stroke")
 print("Class 1 = Ischemic")
 print("Class 2 = Hemorrhagic")
 
+
 # -----------------------------------------------------------------------
 # 5.1) Feature Importance
 # -----------------------------------------------------------------------
@@ -402,6 +450,7 @@ importances = importances.sort_values(
 
 print("\n=== Feature Importance ===")
 print(importances)
+
 
 # -----------------------------------------------------------------------
 # 6) บันทึกโมเดล
@@ -420,6 +469,7 @@ print(
     f"\nบันทึกโมเดลที่ดีที่สุดไปที่: "
     f"{MODEL_PATH}"
 )
+
 
 # -----------------------------------------------------------------------
 # 7) โหลดโมเดลกลับมาใช้งาน (Inference)

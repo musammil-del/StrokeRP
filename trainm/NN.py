@@ -11,6 +11,7 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
     f1_score,
+    roc_auc_score,
     classification_report,
     confusion_matrix,
 )
@@ -102,9 +103,9 @@ print(f"จำนวนข้อมูล Test : {X_test.shape[0]} แถว")
 # -----------------------------------------------------------------------
 
 param_grid = {
-    "hidden_layer_sizes": [ (50,),(100,),(50, 50),(100, 50) ],
+    "hidden_layer_sizes": [ (50,), (100,), (50, 50) ],
     "activation": ["relu", "tanh"],
-    "alpha": [0.0001, 0.001, 0.01],
+    "alpha": [0.0001, 0.001],
     "learning_rate_init": [0.001, 0.01]
 }
 
@@ -234,6 +235,9 @@ print(f"\nบันทึกผลทุกชุดไปที่: {results_cs
 
 y_pred = best_model.predict(X_test)
 
+# คำนวณความน่าจะเป็นของแต่ละ Class สำหรับ AUROC
+y_proba = best_model.predict_proba(X_test)
+
 accuracy = accuracy_score(y_test, y_pred)
 
 precision = precision_score(
@@ -254,11 +258,21 @@ f1 = f1_score(
     zero_division=0
 )
 
+# คำนวณ AUROC บน Test Set (Multi-class OvR)
+auroc = roc_auc_score(
+    y_test,
+    y_proba,
+    multi_class="ovr",
+    average="macro",
+    labels=best_model.classes_
+)
+
 print("\n=== ผลการประเมิน Neural Network บน Test set (30%) ===")
 print(f"Accuracy  : {accuracy:.4f}")
 print(f"Precision : {precision:.4f} (macro average)")
 print(f"Recall    : {recall:.4f} (macro average)")
 print(f"F1-score  : {f1:.4f} (macro average)")
+print(f"AUROC     : {auroc:.4f} (macro average, ovr)")
 
 
 print("\n=== Classification Report ===")

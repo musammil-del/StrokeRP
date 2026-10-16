@@ -661,82 +661,133 @@ html, body, #root {
   border-top: 1px solid var(--border);
 }
 
-/* STEPPERS */
+/* PREDICTION STEPPER */
 .stepper-container {
+  position: relative;
+  isolation: isolate;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  gap: 0;
+  min-height: 112px;
+  box-sizing: border-box;
   margin-bottom: 28px;
-  background: #ffffff;
-  padding: 20px 24px;
-  border-radius: 16px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.04);
-  border: 1px solid #e2e8f0;
+  padding: 16px 24px 12px;
+  overflow: hidden;
+  border: 1px solid #cfe4ff;
+  border-radius: 18px;
+  background: radial-gradient(circle at 98% 45%, #ddecff 0, transparent 28%), linear-gradient(110deg, #f2f8ff 0%, #fff 48%, #edf6ff 100%);
+  box-shadow: 0 5px 16px rgba(23, 95, 180, .09);
+}
+
+.stepper-container::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: -28px;
+  right: -8px;
+  width: 180px;
+  height: 160px;
+  background: url('/stroke-brain.jpg') 44% 23% / cover no-repeat;
+  opacity: .16;
+  filter: brightness(1.4) saturate(.8);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 55%);
+  mask-image: linear-gradient(to right, transparent, #000 55%);
+  pointer-events: none;
+}
+
+.stepper-pulse {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  top: 9px;
+  width: 180px;
+  height: 92px;
+  color: #b9dcff;
+  opacity: .8;
+  pointer-events: none;
 }
 
 .step-item {
+  position: relative;
+  z-index: 1;
   display: flex;
+  flex: 0 0 clamp(130px, 17vw, 175px);
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
 }
 
 .step-circle {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
   display: grid;
   place-items: center;
+  width: 46px;
+  height: 46px;
+  box-sizing: border-box;
+  border: 3px solid #cbdced;
+  border-radius: 50%;
+  background: #eff6fd;
+  color: #254264;
+  font-size: 15px;
   font-weight: 800;
-  font-size: 14px;
-  background: #f1f5f9;
-  color: #475569;
-  border: 2px solid #cbd5e1;
-  transition: all 0.3s;
+  box-shadow: 0 2px 7px rgba(36, 91, 151, .12);
+  transition: background .3s, border-color .3s, color .3s;
 }
 
 .step-item.active .step-circle {
+  border-color: #88c6ff;
   background: #1877f2;
   color: #fff;
-  border-color: #1877f2;
-  box-shadow: 0 4px 14px rgba(24,119,242,0.35);
+  box-shadow: 0 0 0 3px #d6eaff, 0 4px 12px rgba(24, 119, 242, .3);
 }
 
 .step-item.completed .step-circle {
-  background: #16a34a;
+  border-color: #1877f2;
+  background: #1877f2;
   color: #fff;
-  border-color: #16a34a;
 }
 
 .step-label {
-  font-size: 13px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 5px 13px;
+  border-radius: 999px;
+  background: #eaf2fc;
+  color: #385372;
+  font-size: 12px;
   font-weight: 700;
-  color: #64748b;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
 }
 
-.step-item.active .step-label { 
-  color: #1877f2; 
-  font-weight: 800;
-}
-
-.step-item.completed .step-label { 
-  color: #16a34a; 
+.step-item.active .step-label,
+.step-item.completed .step-label {
+  background: #d5e8ff;
+  color: #0756b6;
   font-weight: 800;
 }
 
 .step-line {
-  width: 90px;
-  height: 3px;
-  background: #e2e8f0;
-  margin-bottom: 24px;
-  transition: background 0.3s;
+  position: relative;
+  z-index: 1;
+  flex: 0 0 clamp(55px, 7vw, 95px);
+  height: 4px;
+  margin-top: 21px;
+  border-radius: 999px;
+  background: #d4dfec;
+  transition: background .3s;
 }
 
-.step-line.done {
-  background: #16a34a;
-}
+.step-line.active { background: #1877f2; }
 
+@media (max-width: 700px) {
+  .stepper-container { min-height: 104px; padding: 16px 8px 12px; }
+  .step-item { flex: 1 1 0; min-width: 0; }
+  .step-line { flex: 0 1 22px; min-width: 8px; }
+  .step-label { padding: 5px 6px; font-size: 10px; white-space: normal; }
+  .stepper-pulse { left: -80px; opacity: .35; }
+  .stepper-container::after { opacity: .1; }
+}
 /* ACTION BUTTONS */
 .action-btn {
   border: 0;
@@ -888,11 +939,11 @@ html, body, #root {
 
 /* PREDICTION FORM & CHECKBOX STYLES */
 .prediction-form {
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
+  background: linear-gradient(145deg, #fff 0%, #fbfdff 100%);
+  border: 1.5px solid #cfe4ff;
+  border-radius: 18px;
   padding: 28px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+  box-shadow: 0 6px 20px rgba(23, 95, 180, .09), inset 0 1px 0 rgba(255, 255, 255, .9);
 }
 
 .check-group {
@@ -1710,3 +1761,19 @@ html, body, #root {
 .dataset-delete-confirm .spin { animation: spin 1s linear infinite; }
 .dataset-delete-cancel:disabled,
 .dataset-delete-confirm:disabled { opacity: .65; cursor: wait; }
+
+
+/* Keep numeric entry while hiding the browser stepper controls on prediction fields. */
+.hide-number-spinner { appearance: textfield; -moz-appearance: textfield; }
+.hide-number-spinner::-webkit-inner-spin-button,
+.hide-number-spinner::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+
+/* Full-width single-select gender field. */
+.gender-field { width: 100%; min-width: 0; margin: 0 0 14px; padding: 0; border: 0; }
+.gender-field legend { margin-bottom: 6px; color: var(--text-mid); font-size: 13px; font-weight: 700; }
+.gender-select { display: block; width: 100%; min-height: 50px; box-sizing: border-box; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 9px; background: #fafcfd; color: var(--text-dark); font: inherit; font-size: 14px; outline: none; cursor: pointer; }
+.gender-select:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(24, 119, 242, .1); }
+
+/* User deletion uses the same confirmation style as patient deletion. */
+.user-delete-dialog { width: min(90vw, 540px); }

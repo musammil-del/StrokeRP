@@ -6,10 +6,14 @@ import pandas as pd
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from django.utils import timezone
 from django.contrib.auth import authenticate, login, logout
 from django.db.models import Q
 from prediction.models import StrokePrediction, StrokeDataset
 from accounts.models import User
+
+# Display prediction history in Thailand time (UTC+7).
+THAI_TZ = timezone.get_fixed_timezone(420)
 
 # Helper to map inputs to boolean integers
 def to_bool_int(val):
@@ -132,9 +136,9 @@ def predict_stroke(request):
                 return JsonResponse({'error': f'ค่า {f} ไม่ถูกต้อง'}, status=400)
 
         # Load the model used by the prediction page.
-        model_path = os.path.join(settings.BASE_DIR, "prediction", "ml_models", "RandomforestmodeL.pkl")
+        model_path = os.path.join(settings.BASE_DIR, "prediction", "ml_models", "Modelrandomforest.pkl")
         if not os.path.exists(model_path):
-            return JsonResponse({'error': 'ไม่พบไฟล์โมเดล RandomforestmodeL.pkl'}, status=400)
+            return JsonResponse({'error': 'ไม่พบไฟล์โมเดล Modelrandomforest.pkl'}, status=400)
         
         loaded_data = joblib.load(model_path)
         model = loaded_data["model"]
@@ -355,9 +359,10 @@ def dashboard_stats(request):
             date_str = '24 ส.ค.'
             time_str = '14:30 น.'
             if p.created_at:
-                m_idx = p.created_at.month - 1
-                date_str = f"{p.created_at.day} {months_th[m_idx]}"
-                time_str = f"{p.created_at.strftime('%H:%M')} น."
+                local_created_at = timezone.localtime(p.created_at, THAI_TZ)
+                m_idx = local_created_at.month - 1
+                date_str = f"{local_created_at.day} {months_th[m_idx]}"
+                time_str = f"{local_created_at.strftime('%H:%M')} น."
 
             is_stroke = p.predicted_stroke_type in ['Ischemic', 'Hemorrhagic']
             label = 'ปกติ' if p.predicted_stroke_type == 'No_Stroke' else 'เสี่ยงสูง'
@@ -528,7 +533,7 @@ def api_dataset(request):
             if StrokePrediction.objects.exists():
                 qs = StrokePrediction.objects.all().order_by('-id')
                 if search:
-                    qs = qs.filter(Q(patient_id__icontains=search) | Q(predicted_stroke_type__icontains=search))
+                    qs = qs.filter(Q(patient_id__icontains=search) | Q(gender__icontains=search) | Q(predicted_stroke_type__icontains=search))
                 total = qs.count()
                 start = (page - 1) * limit
                 end = start + limit
@@ -537,6 +542,7 @@ def api_dataset(request):
                     rows.append({
                         'id': item.id,
                         'patient_id': item.patient_id or f'PT0{item.id}',
+                        'gender': item.gender,
                         'weakness_half_body': item.weakness_half_body,
                         'speech_difficulty': item.speech_difficulty,
                         'blurred_vision': item.blurred_vision,
@@ -565,6 +571,7 @@ def api_dataset(request):
                     rows.append({
                         'id': item.id,
                         'patient_id': item.patient_id,
+                        'gender': None,
                         'weakness_half_body': item.weakness_half_body,
                         'speech_difficulty': item.speech_difficulty,
                         'blurred_vision': item.blurred_vision,
@@ -601,6 +608,7 @@ def api_dataset(request):
                 
             prediction_item = StrokePrediction(
                 patient_id=patient_id,
+                gender=data.get('gender') or None,
                 weakness_half_body=to_bool_int(data.get('weakness_half_body', False)),
                 speech_difficulty=to_bool_int(data.get('speech_difficulty', False)),
                 blurred_vision=to_bool_int(data.get('blurred_vision', False)),
@@ -634,6 +642,8 @@ def api_dataset(request):
 
             if 'patient_id' in data:
                 item.patient_id = data['patient_id']
+            if 'gender' in data and isinstance(item, StrokePrediction):
+                item.gender = data['gender'] or None
             if 'weakness_half_body' in data:
                 item.weakness_half_body = to_bool_int(data['weakness_half_body'])
             if 'speech_difficulty' in data:

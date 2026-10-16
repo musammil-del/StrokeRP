@@ -11,6 +11,7 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
     f1_score,
+    roc_auc_score,
     classification_report,
     confusion_matrix,
 )
@@ -99,9 +100,8 @@ print(f"จำนวนข้อมูล Test : {X_test.shape[0]} แถว")
 # -----------------------------------------------------------------------
 
 param_grid = {
-    "n_neighbors": [3, 5, 7, 9, 11],
+    "n_neighbors": [3, 5, 7],
     "weights": ["uniform", "distance"],
-    "metric": ["euclidean", "manhattan", "minkowski"],
     "p": [1, 2]
 }
 
@@ -226,6 +226,9 @@ results_df.to_csv(
 
 y_pred = best_model.predict(X_test)
 
+# คำนวณความน่าจะเป็นของแต่ละ Class สำหรับ AUROC
+y_proba = best_model.predict_proba(X_test)
+
 accuracy = accuracy_score(y_test, y_pred)
 
 precision = precision_score(
@@ -246,11 +249,21 @@ f1 = f1_score(
     zero_division=0
 )
 
+# คำนวณ AUROC บน Test Set (Multi-class OvR)
+auroc = roc_auc_score(
+    y_test,
+    y_proba,
+    multi_class="ovr",
+    average="macro",
+    labels=best_model.classes_
+)
+
 print("\n=== ผลการประเมิน K-NN บน Test set (30%) ===")
 print(f"Accuracy  : {accuracy:.4f}")
 print(f"Precision : {precision:.4f} (macro average)")
 print(f"Recall    : {recall:.4f} (macro average)")
 print(f"F1-score  : {f1:.4f} (macro average)")
+print(f"AUROC     : {auroc:.4f} (macro average, ovr)")
 
 
 print("\n=== Classification Report ===")

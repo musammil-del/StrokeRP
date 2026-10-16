@@ -10,6 +10,7 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
     f1_score,
+    roc_auc_score,
     classification_report,
     confusion_matrix,
 )
@@ -121,13 +122,13 @@ print(
 )
 
 # -----------------------------------------------------------------------
-# 4) Grid Search + Cross Validation (k=10)
+# 4) Grid Search + Cross Validation (k=5)
 # -----------------------------------------------------------------------
 param_grid = {
     "criterion": ["gini", "entropy"],
-    "max_depth": [3, 5, 10, 20, None],
-    "min_samples_split": [2, 5, 10],
-    "min_samples_leaf": [1, 2, 5],
+    "max_depth": [None, 5, 10],
+    "min_samples_split": [2, 4],
+    "min_samples_leaf": [1, 2],
     "class_weight": [None, "balanced"],
 }
 
@@ -141,7 +142,7 @@ print(
 )
 
 print(
-    "กำลังทำ Grid Search (cv=10) "
+    "กำลังทำ Grid Search (cv=5) "
     "พร้อม SMOTE ... อาจใช้เวลาสักครู่\n"
 )
 
@@ -173,7 +174,7 @@ for i, params in enumerate(
         pipeline,
         X_train,
         y_train,
-        cv=10,
+        cv=5,
         scoring=[
             "f1_macro",
             "precision_macro",
@@ -346,6 +347,11 @@ y_pred = best_model.predict(
     X_test
 )
 
+# ความน่าจะเป็นสำหรับคำนวณ AUROC
+y_proba = best_model.predict_proba(
+    X_test
+)
+
 accuracy = accuracy_score(
     y_test,
     y_pred
@@ -372,6 +378,15 @@ f1 = f1_score(
     zero_division=0
 )
 
+# AUROC สำหรับ Multi-class (One-vs-Rest)
+auroc = roc_auc_score(
+    y_test,
+    y_proba,
+    multi_class="ovr",
+    average="macro",
+    labels=best_model.classes_
+)
+
 print(
     "\n=== ผลการประเมินโมเดลบน Test set (30%) ==="
 )
@@ -393,6 +408,11 @@ print(
 print(
     f"F1-score  : {f1:.4f} "
     f"(macro average)"
+)
+
+print(
+    f"AUROC     : {auroc:.4f} "
+    f"(macro average, ovr)"
 )
 
 # -----------------------------------------------------------------------

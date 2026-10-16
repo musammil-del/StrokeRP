@@ -77,11 +77,11 @@ print(f"จำนวนข้อมูล Test : {X_test.shape[0]} แถว")
 #    ไม่ใส่ class_weight เพราะให้ SMOTE จัดการเรื่อง imbalance แทนแล้ว
 # -----------------------------------------------------------------------
 param_grid = {
-    "n_estimators": [100, 200, 300],
+    "n_estimators": [300, 400],
     "criterion": ["gini", "entropy"],
-    "max_depth": [None, 10, 20],
-    "min_samples_split": [2, 5, 10],
-    "min_samples_leaf": [1, 2],
+    "max_depth": [15, 25],
+    "min_samples_split": [4, 6],
+    "min_samples_leaf": [2, 4],
     "class_weight": [None, "balanced"],
 }
 
