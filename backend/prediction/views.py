@@ -543,6 +543,9 @@ def api_dataset(request):
                         'id': item.id,
                         'patient_id': item.patient_id or f'PT0{item.id}',
                         'gender': item.gender,
+                        'age': item.age,
+                        'weight': float(item.weight) if item.weight is not None else None,
+                        'height': float(item.height) if item.height is not None else None,
                         'weakness_half_body': item.weakness_half_body,
                         'speech_difficulty': item.speech_difficulty,
                         'blurred_vision': item.blurred_vision,
@@ -557,7 +560,9 @@ def api_dataset(request):
                         'has_diabetes': item.has_diabetes,
                         'has_hypertension': item.has_hypertension,
                         'has_dyslipidemia': item.has_dyslipidemia,
-                        'stroke_type': item.predicted_stroke_type
+                        'stroke_type': item.predicted_stroke_type,
+                        'confidence': float(item.confidence) if item.confidence is not None else None,
+                        'created_at': timezone.localtime(item.created_at, THAI_TZ).isoformat() if item.created_at else None
                     })
             else:
                 qs = StrokeDataset.objects.all().order_by('-id')
@@ -586,7 +591,12 @@ def api_dataset(request):
                         'has_diabetes': item.has_diabetes,
                         'has_hypertension': item.has_hypertension,
                         'has_dyslipidemia': item.has_dyslipidemia,
-                        'stroke_type': item.stroke_type
+                        'stroke_type': item.stroke_type,
+                        'confidence': None,
+                        'age': None,
+                        'weight': None,
+                        'height': None,
+                        'created_at': timezone.localtime(item.created_at, THAI_TZ).isoformat() if item.created_at else None
                     })
                 
             return JsonResponse({

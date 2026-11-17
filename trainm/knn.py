@@ -100,7 +100,7 @@ print(f"จำนวนข้อมูล Test : {X_test.shape[0]} แถว")
 # -----------------------------------------------------------------------
 
 param_grid = {
-    "n_neighbors": [3, 5, 7],
+    "n_neighbors": [5, 10, 15],
     "weights": ["uniform", "distance"],
     "p": [1, 2]
 }

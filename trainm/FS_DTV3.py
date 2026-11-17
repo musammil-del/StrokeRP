@@ -127,9 +127,9 @@ print(
 param_grid = {
     "criterion": ["gini", "entropy"],
     "max_depth": [5, 10, 15],
-    "min_samples_split": [2, 4],
-    "min_samples_leaf": [1, 2],
-    "class_weight": [None, "balanced"],
+    "min_samples_split": [4, 6],
+    "min_samples_leaf": [2, 3],
+    "class_weight": [None],
 }
 
 all_combinations = list(
@@ -142,7 +142,7 @@ print(
 )
 
 print(
-    "กำลังทำ Grid Search (cv=5) "
+    "กำลังทำ Grid Search (cv=10) "
     "พร้อม SMOTE ... อาจใช้เวลาสักครู่\n"
 )
 
@@ -174,7 +174,7 @@ for i, params in enumerate(
         pipeline,
         X_train,
         y_train,
-        cv=5,
+        cv=10,
         scoring=[
             "f1_macro",
             "precision_macro",

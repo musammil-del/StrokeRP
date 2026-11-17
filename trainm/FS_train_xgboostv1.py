@@ -69,12 +69,11 @@ print(f"จำนวนข้อมูล Test : {X_test.shape[0]} แถว")
 # -----------------------------------------------------------------------
 param_grid = {
     "n_estimators": [100, 200, 300],
-    "max_depth": [3, 6],
+    "max_depth": [None, 5, 10],
     "learning_rate": [0.05, 0.1],
     "subsample": [0.8, 1.0],
-    "colsample_bytree": [0.8, 1.0],
     "gamma": [0, 1.0],
-    "reg_alpha": [0, 0.5],
+    "reg_alpha": [0,0.5],
     "reg_lambda": [1.0, 2.0],
 }
 

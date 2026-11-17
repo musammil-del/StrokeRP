@@ -24,7 +24,7 @@ from imblearn.over_sampling import SMOTE
 # -----------------------------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(BASE_DIR, "1989.csv")
-MODEL_PATH = os.path.join(BASE_DIR, "Modelrandomforest.pkl")
+MODEL_PATH = os.path.join(BASE_DIR, "sadsad.pkl")
 TARGET_COL = "Stroke_Type"
 
 # คอลัมน์ที่ไม่ใช่ feature ทางการแพทย์
@@ -109,12 +109,12 @@ print(f"จำนวนข้อมูล Test : {X_test.shape[0]} แถว")
 # 4) Grid Search + Cross Validation (k=10)
 # -----------------------------------------------------------------------
 param_grid = {
-    "n_estimators": [100, 200, 300],
-    "criterion": ["gini", "entropy"],
-    "max_depth": [None, 5, 10],
-    "min_samples_split": [2, 4],
-    "min_samples_leaf": [1, 2],
-    "class_weight": [None, "balanced"],
+    "n_estimators": [150, 250, 350],
+    "criterion": ["entropy"],
+    "max_depth": [5, 10, 15],
+    "min_samples_split": [4, 6],
+    "min_samples_leaf": [2, 3],
+    "class_weight": ["balanced"],
 }
 
 all_combinations = list(ParameterGrid(param_grid))

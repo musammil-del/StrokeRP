@@ -68,12 +68,11 @@ print(f"จำนวนข้อมูล Test : {X_test.shape[0]} แถว")
 #    ไม่ใส่ scale_pos_weight/class_weight เพราะให้ SMOTE จัดการเรื่อง imbalance แทนแล้ว
 # -----------------------------------------------------------------------
 param_grid = {
-    "n_estimators": [100, 200, 300],
-    "max_depth": [5, 8],
-    "learning_rate": [0.05, 0.1],
+    "n_estimators": [150, 250, 350],
+    "max_depth": [5, 10, 15],
+    "learning_rate": [0.10, 0.15],
     "subsample": [0.8, 1.0],
-    "colsample_bytree": [0.8, 1.0],
-    "gamma": [0, 1.0],
+    "gamma": [0.5, 1.5],
     "reg_alpha": [0, 0.5],
     "reg_lambda": [1.0, 2.0],
 }

@@ -1270,7 +1270,7 @@ function DiseaseInfoView() {
       {/* CONTENT: หน้าที่ 3 (เคล็ดลับป้องกันโรคหลอดเลือดสมอง) */}
       {activeSubTab === 'prevention' && <PreventionView />}
 
-      {/* CONTENT: หน้าที่ 4 (แนวทางการรักษาโรคหลอดเลือดสมอง Treatment) */}
+      {/* CONTENT: หน้าที่ 4 (แนวทางการรักษาโรคหลอดเลือดสมอง (Treatment of Stroke)) */}
       {activeSubTab === 'treatment' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div className="feature-card" style={{ padding: '28px 34px' }}>
@@ -1433,6 +1433,7 @@ function PredictView() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ ...blankForm });
   const [result, setResult] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -1489,12 +1490,19 @@ function PredictView() {
     setStep(s => s + 1);
   }
 
-  async function handlePredict() {
+  function handlePredict() {
     const err1 = validateStep(1);
     if (err1) { setError(err1); setStep(1); return; }
     const err2 = validateStep(2);
     if (err2) { setError(err2); setStep(2); return; }
 
+    setError('');
+    setConfirmOpen(true);
+  }
+
+  async function confirmPrediction() {
+    if (loading) return;
+    setConfirmOpen(false);
     setError(''); setLoading(true);
     try {
       const payload = {
@@ -1591,10 +1599,10 @@ function PredictView() {
             <div className="grid-2" style={{ gap: 24 }}>
               <div>
                 <p style={{ fontSize: 14, fontWeight: 800, color: '#0e0e0f', marginBottom: 12 }}>ค่าตรวจสุขภาพ</p>
-                <div className="field"><span>ความดันโลหิตตัวบน Systolic BP (mmHg)</span><input type="number" min="50" max="300" step="any" className="hide-number-spinner" placeholder="เช่น 140 (mmHg)" value={form.systolic_bp} onChange={e => { setError(''); set('systolic_bp', e.target.value); }} /></div>
-                <div className="field"><span>ความดันโลหิตตัวล่าง Diastolic BP (mmHg)</span><input type="number" min="30" max="200" step="any" className="hide-number-spinner" placeholder="เช่น 90 (mmHg)" value={form.diastolic_bp} onChange={e => { setError(''); set('diastolic_bp', e.target.value); }} /></div>
-                <div className="field"><span>น้ำตาลในเลือด Blood Sugar (mg/dL)</span><input type="number" min="20" max="1000" step="any" className="hide-number-spinner" placeholder="เช่น 100 (mg/dL)" value={form.blood_sugar} onChange={e => { setError(''); set('blood_sugar', e.target.value); }} /></div>
-                <div className="field"><span>ไขมันในเลือด Cholesterol (mg/dL)</span><input type="number" min="50" max="1000" step="any" className="hide-number-spinner" placeholder="เช่น 200 (mg/dL)" value={form.cholesterol} onChange={e => { setError(''); set('cholesterol', e.target.value); }} /></div>
+                <div className="field"><span>ความดันโลหิตตัวบน Systolic BP (mmHg) <span className="risk-factor-note">(ปัจจัยเสี่ยงร่วม)</span></span><input type="number" min="50" max="300" step="any" className="hide-number-spinner" placeholder="เช่น 140 (mmHg)" value={form.systolic_bp} onChange={e => { setError(''); set('systolic_bp', e.target.value); }} /></div>
+                <div className="field"><span>ความดันโลหิตตัวล่าง Diastolic BP (mmHg) <span className="risk-factor-note">(ปัจจัยเสี่ยงร่วม)</span></span><input type="number" min="30" max="200" step="any" className="hide-number-spinner" placeholder="เช่น 90 (mmHg)" value={form.diastolic_bp} onChange={e => { setError(''); set('diastolic_bp', e.target.value); }} /></div>
+                <div className="field"><span>น้ำตาลในเลือด Blood Sugar (mg/dL) <span className="risk-factor-note">(ปัจจัยเสี่ยงร่วม)</span></span><input type="number" min="20" max="1000" step="any" className="hide-number-spinner" placeholder="เช่น 100 (mg/dL)" value={form.blood_sugar} onChange={e => { setError(''); set('blood_sugar', e.target.value); }} /></div>
+                <div className="field"><span>ไขมันในเลือด Cholesterol (mg/dL) <span className="risk-factor-note">(ปัจจัยเสี่ยงร่วม)</span></span><input type="number" min="50" max="1000" step="any" className="hide-number-spinner" placeholder="เช่น 200 (mg/dL)" value={form.cholesterol} onChange={e => { setError(''); set('cholesterol', e.target.value); }} /></div>
 
                 <p style={{ fontSize: 14, fontWeight: 800, color: '#071838', margin: '18px 0 10px' }}>ประวัติโรค (สามารถเลือกได้หลายรายการ)</p>
                 <div className="check-group">
@@ -1623,7 +1631,7 @@ function PredictView() {
               </div>
 
               <div>
-                <p style={{ fontSize: 14, fontWeight: 800, color: '#071838', marginBottom: 10 }}>อาการที่พบ (สามารถเลือกได้หลายรายการ)</p>
+                <p style={{ fontSize: 14, fontWeight: 800, color: '#071838', marginBottom: 10 }}>อาการที่พบ (สามารถเลือกได้หลายรายการ) <span className="risk-factor-note">(ปัจจัยเสี่ยงร่วม)</span></p>
                 <div className="check-group">
                   {[
                     { key: 'weakness_half_body', label: 'แขน/ขาอ่อนแรงครึ่งซีก' },
@@ -1727,6 +1735,19 @@ function PredictView() {
           )}
         </div>
       </div>
+
+      {confirmOpen && (
+        <div className="modal-overlay prediction-confirm-overlay" role="presentation">
+          <div className="modal-content prediction-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="prediction-confirm-title" aria-describedby="prediction-confirm-description">
+            <div className="prediction-confirm-icon"><AlertTriangle size={32} /></div>
+            <h3 id="prediction-confirm-title">ยืนยันการประเมินความเสี่ยงหรือไม่?</h3>
+            <p id="prediction-confirm-description">ผลลัพธ์นี้เป็นเพียงการประเมินเบื้องต้น ไม่ใช่การวินิจฉัยทางการแพทย์ กรุณาปรึกษาแพทย์ผู้เชี่ยวชาญ</p>
+            <div className="modal-footer">
+              <button type="button" className="primary-button prediction-confirm-button" onClick={confirmPrediction}>ยืนยัน</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1874,6 +1895,25 @@ function ResultView({ result, form, onReset }) {
         </div>
       </div>
 
+      {/* 4. Recommendation Card */}
+      <div className="feature-card" style={{ marginBottom: 24, padding: '24px 32px' }}>
+        <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
+          คำแนะนำและแนวทางปฏิบัติเบื้องต้น
+        </h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 10 }}>
+          {(recommendations[pred] || []).map((r, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', background: '#f8fafc', borderRadius: 8, border: '1px solid #eef3f6' }}>
+              <CheckCircle2 size={16} color="#27ae60" style={{ marginTop: 2, flexShrink: 0 }} />
+              <span style={{ fontSize: 14, color: '#445a65', lineHeight: 1.5, fontWeight: 500 }}>{r}</span>
+            </div>
+          ))}
+        </div>
+        <div className="result-disclaimer">
+          <AlertTriangle size={19} aria-hidden="true" />
+          <p>หมายเหตุ: ผลลัพธ์นี้เป็นเพียงการประเมินเบื้องต้น ไม่ใช่การวินิจฉัยทางการแพทย์ กรุณาปรึกษาแพทย์ผู้เชี่ยวชาญ</p>
+        </div>
+      </div>
+
       {/* 2. AI Explanation Card */}
       <div className="feature-card" style={{ marginBottom: 20, padding: '24px 32px' }}>
         <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
@@ -1896,24 +1936,6 @@ function ResultView({ result, form, onReset }) {
             </div>
           ))}
         </div>
-      </div>
-
-      {/* 4. Recommendation Card */}
-      <div className="feature-card" style={{ marginBottom: 24, padding: '24px 32px' }}>
-        <h3 style={{ fontSize: 16, fontWeight: 800, color: '#134e5e', marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #d1e0e8' }}>
-          คำแนะนำและแนวทางปฏิบัติเบื้องต้น
-        </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 10 }}>
-          {(recommendations[pred] || []).map((r, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', background: '#f8fafc', borderRadius: 8, border: '1px solid #eef3f6' }}>
-              <CheckCircle2 size={16} color="#27ae60" style={{ marginTop: 2, flexShrink: 0 }} />
-              <span style={{ fontSize: 14, color: '#445a65', lineHeight: 1.5, fontWeight: 500 }}>{r}</span>
-            </div>
-          ))}
-        </div>
-        <p style={{ marginTop: 16, fontSize: 12, color: '#7a9aac', fontStyle: 'italic' }}>
-          หมายเหตุ: ผลลัพธ์นี้เป็นเพียงการประเมินเบื้องต้น ไม่ใช่การวินิจฉัยทางการแพทย์ กรุณาปรึกษาแพทย์ผู้เชี่ยวชาญ
-        </p>
       </div>
 
       <div style={{ textAlign: 'center' }}>
@@ -1956,22 +1978,38 @@ function UsersView() {
   function openAdd() {
     setForm({ username: '', password: '', first_name: '', last_name: '', role: 'user', is_active: true });
     setModal('add');
+    setMsg('');
   }
 
-  function openEdit(u) {
-    setForm({ username: u.username, password: '', first_name: u.first_name || '', last_name: u.last_name || '', role: u.role, is_active: u.is_active });
-    setModal({ type: 'edit', id: u.id });
+  function openEdit(row) {
+    setForm({
+      id: row.id,
+      username: row.username || '',
+      password: '',
+      first_name: row.first_name || '',
+      last_name: row.last_name || '',
+      role: row.role || 'user',
+      is_active: Boolean(row.is_active),
+    });
+    setModal({ type: 'edit', id: row.id });
+    setMsg('');
   }
 
   async function handleSave() {
+    if (!form.username.trim()) {
+      setMsg('กรุณากรอกชื่อผู้ใช้');
+      return;
+    }
     setSaving(true); setMsg('');
     try {
-      let method = 'POST';
-      let body = { ...form };
-      if (modal !== 'add') { method = 'PUT'; body.id = modal.id; }
+      const method = modal === 'add' ? 'POST' : 'PUT';
+      const payload = { ...form };
+      if (!payload.password) delete payload.password;
       const res = await fetch(`${API}/api/users/`, {
-        method, headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', body: JSON.stringify(body),
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (data.success) { setModal(null); loadUsers(); }
@@ -2178,14 +2216,16 @@ function DatasetView() {
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState({
-    patient_id: '', gender: '', systolic_bp: '', diastolic_bp: '', blood_sugar: '', cholesterol: '', bmi: '',
-    has_diabetes: false, has_hypertension: false, has_dyslipidemia: false, stroke_type: 'No_Stroke'
+    gender: '', stroke_type: 'No_Stroke', systolic_bp: '', diastolic_bp: '',
+    blood_sugar: '', cholesterol: '', bmi: '',
+    has_diabetes: false, has_hypertension: false, has_dyslipidemia: false
   });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [selectedPatient, setSelectedPatient] = useState(null);
 
   async function loadRows() {
     setLoading(true);
@@ -2203,7 +2243,11 @@ function DatasetView() {
   const totalPages = Math.ceil(total / limit);
 
   function openAdd() {
-    setForm({ patient_id: '', gender: '', systolic_bp: '', diastolic_bp: '', blood_sugar: '', cholesterol: '', bmi: '', has_diabetes: false, has_hypertension: false, has_dyslipidemia: false, stroke_type: 'No_Stroke' });
+    setForm({
+      gender: '', stroke_type: 'No_Stroke', systolic_bp: '', diastolic_bp: '',
+      blood_sugar: '', cholesterol: '', bmi: '',
+      has_diabetes: false, has_hypertension: false, has_dyslipidemia: false
+    });
     setModal('add');
     setMsg('');
   }
@@ -2212,15 +2256,9 @@ function DatasetView() {
     setForm({
       id: row.id,
       gender: row.gender || '',
-      systolic_bp: row.systolic_bp || '',
-      diastolic_bp: row.diastolic_bp || '',
-      blood_sugar: row.blood_sugar || '',
-      cholesterol: row.cholesterol || '',
-      bmi: row.bmi || '',
       has_diabetes: Boolean(row.has_diabetes),
       has_hypertension: Boolean(row.has_hypertension),
       has_dyslipidemia: Boolean(row.has_dyslipidemia),
-      stroke_type: row.stroke_type || 'No_Stroke'
     });
     setModal({ type: 'edit', id: row.id });
     setMsg('');
@@ -2231,28 +2269,27 @@ function DatasetView() {
       setMsg('กรุณาเลือกเพศ');
       return;
     }
-    const limits = [
-      ['systolic_bp', 50, 300, 'Systolic BP', 'mmHg'],
-      ['diastolic_bp', 30, 200, 'Diastolic BP', 'mmHg'],
-      ['blood_sugar', 20, 1000, 'Blood Sugar', 'mg/dL'],
-      ['cholesterol', 50, 1000, 'Cholesterol', 'mg/dL'],
-    ];
-    for (const [key, min, max, label, unit] of limits) {
-      if (form[key] !== '' && (!Number.isFinite(Number(form[key])) || Number(form[key]) < min || Number(form[key]) > max)) {
-        setMsg(`กรุณากรอก ${label} ระหว่าง ${min}–${max} ${unit}`);
-        return;
+    if (modal === 'add') {
+      const limits = [
+        ['systolic_bp', 50, 300, 'Systolic BP', 'mmHg'],
+        ['diastolic_bp', 30, 200, 'Diastolic BP', 'mmHg'],
+        ['blood_sugar', 20, 1000, 'Blood Sugar', 'mg/dL'],
+        ['cholesterol', 50, 1000, 'Cholesterol', 'mg/dL'],
+      ];
+      for (const [key, min, max, label, unit] of limits) {
+        if (form[key] !== '' && (!Number.isFinite(Number(form[key])) || Number(form[key]) < min || Number(form[key]) > max)) {
+          setMsg(`กรุณากรอก ${label} ระหว่าง ${min}–${max} ${unit}`);
+          return;
+        }
       }
     }
     setSaving(true); setMsg('');
     try {
-      const method = modal === 'add' ? 'POST' : 'PUT';
-      const payload = { ...form };
-      if (modal !== 'add') delete payload.stroke_type;
       const res = await fetch(`${API}/api/dataset/`, {
-        method,
+        method: modal === 'add' ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(payload),
+        body: JSON.stringify(form),
       });
       const data = await res.json();
       if (data.success) { setModal(null); loadRows(); }
@@ -2317,7 +2354,7 @@ function DatasetView() {
                 background: '#ffffff',
                 color: '#0f172a' 
               }} 
-              placeholder="ค้นหาชื่อผู้ป่วยหรือเพศ..." 
+              placeholder="ค้นหาเพศหรือผลการทำนาย..." 
               value={search} 
               onChange={e => { setSearch(e.target.value); setPage(1); }} 
             />
@@ -2379,7 +2416,19 @@ function DatasetView() {
               ) : rows.map((row, i) => {
                 const idx = (page - 1) * limit + i;
                 return (
-                  <tr key={row.id}>
+                  <tr
+                    key={row.id}
+                    className="patient-data-row"
+                    tabIndex={0}
+                    title="คลิกเพื่อดูข้อมูลที่กรอก"
+                    onClick={() => setSelectedPatient(row)}
+                    onKeyDown={event => {
+                      if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
+                        event.preventDefault();
+                        setSelectedPatient(row);
+                      }
+                    }}
+                  >
                     <td style={{ color: '#7a9aac' }}>{idx + 1}</td>
                     <td><strong style={{ color: '#071838' }}>{formatGender(row.gender)}</strong></td>
                     <td>{row.systolic_bp}</td>
@@ -2392,8 +2441,8 @@ function DatasetView() {
                     <td>{strokeTypeBadge(row.stroke_type)}</td>
                     <td>
                       <div style={{ display: 'flex', gap: 4 }}>
-                        <button className="action-btn" onClick={() => openEdit(row)} title="แก้ไข"><Edit2 size={14} /></button>
-                        <button className="action-btn delete" onClick={() => { setDeleteTarget({ id: row.id }); setDeleteError(''); }} title="ลบ"><Trash2 size={14} /></button>
+                        <button className="action-btn" onClick={event => { event.stopPropagation(); openEdit(row); }} title="แก้ไข"><Edit2 size={14} /></button>
+                        <button className="action-btn delete" onClick={event => { event.stopPropagation(); setDeleteTarget({ id: row.id }); setDeleteError(''); }} title="ลบ"><Trash2 size={14} /></button>
                       </div>
                     </td>
                   </tr>
@@ -2412,6 +2461,58 @@ function DatasetView() {
           <button className="pagination-btn" onClick={() => setPage(p => Math.min(p + 1, totalPages))} disabled={page >= totalPages}><ChevronRight size={16} /></button>
         </div>
       </div>
+
+      {selectedPatient && (
+        <div className="modal-overlay" onClick={event => { if (event.target === event.currentTarget) setSelectedPatient(null); }}>
+          <div className="modal-content patient-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="patient-detail-title">
+            <div className="modal-header">
+              <div>
+                <h3 id="patient-detail-title">รายละเอียดข้อมูลผู้ป่วย</h3>
+
+              </div>
+              <CloseBtn onClick={() => setSelectedPatient(null)} />
+            </div>
+            <div className="patient-detail-grid">
+              {[
+                ['เพศ', formatGender(selectedPatient.gender)],
+                ['อายุ', selectedPatient.age != null ? `${selectedPatient.age} ปี` : '-'],
+                ['น้ำหนัก', selectedPatient.weight != null ? `${selectedPatient.weight} กก.` : '-'],
+                ['ส่วนสูง', selectedPatient.height != null ? `${selectedPatient.height} ซม.` : '-'],
+                ['Systolic BP', selectedPatient.systolic_bp != null ? `${selectedPatient.systolic_bp} mmHg` : '-'],
+                ['Diastolic BP', selectedPatient.diastolic_bp != null ? `${selectedPatient.diastolic_bp} mmHg` : '-'],
+                ['Blood Sugar', selectedPatient.blood_sugar != null ? `${selectedPatient.blood_sugar} mg/dL` : '-'],
+                ['Cholesterol', selectedPatient.cholesterol != null ? `${selectedPatient.cholesterol} mg/dL` : '-'],
+                ['BMI', selectedPatient.bmi ?? '-'],
+                ['Diabetes', selectedPatient.has_diabetes ? 'มี' : 'ไม่มี'],
+                ['Hypertension', selectedPatient.has_hypertension ? 'มี' : 'ไม่มี'],
+                ['Dyslipidemia', selectedPatient.has_dyslipidemia ? 'มี' : 'ไม่มี'],
+                ['EKG', selectedPatient.ekg_result ? 'ผิดปกติ' : 'ปกติ'],
+                ['ผลการพยากรณ์', strokeTypeBadge(selectedPatient.stroke_type)],
+                ['ความมั่นใจ', selectedPatient.confidence != null ? `${selectedPatient.confidence}%` : '-'],
+                ['เวลาที่บันทึก', selectedPatient.created_at ? new Date(selectedPatient.created_at).toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }) : '-'],
+              ].map(([label, value]) => (
+                <div className="patient-detail-item" key={label}>
+                  <span>{label}</span>
+                  <strong>{value}</strong>
+                </div>
+              ))}
+            </div>
+            <div className="patient-detail-symptoms">
+              <strong>อาการที่พบ</strong>
+              <div>{[
+                ['weakness_half_body', 'แขน/ขาอ่อนแรงครึ่งซีก'],
+                ['speech_difficulty', 'พูดไม่ชัด/สื่อสารไม่ได้'],
+                ['blurred_vision', 'ตามัว/มองไม่เห็น'],
+                ['sudden_headache', 'ปวดศีรษะรุนแรงเฉียบพลัน'],
+                ['dizziness_vertigo', 'วิงเวียน/เสียการทรงตัว'],
+              ].filter(([key]) => selectedPatient[key]).map(([, label]) => label).join(' • ') || 'ไม่มีอาการที่เลือก'}</div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="dataset-delete-cancel" onClick={() => setSelectedPatient(null)}>ปิด</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {deleteTarget && (
         <div className="modal-overlay" role="presentation" onClick={e => { if (e.target === e.currentTarget && !deleting) setDeleteTarget(null); }}>
@@ -2438,26 +2539,23 @@ function DatasetView() {
               <CloseBtn onClick={() => setModal(null)} />
             </div>
             {msg && <div className="error-box">{msg}</div>}
-            <div className="grid-2">
-              {modal === 'add' && <div className="field"><span>ชื่อผู้ป่วย (Patient Name)</span><input value={form.patient_id} onChange={e => setF('patient_id', e.target.value)} placeholder="กรอกชื่อผู้ป่วย" /></div>}
-              <GenderChoices label="เพศ" name="dataset-gender" value={form.gender} onChange={value => setF('gender', value)} />
-              <div className="field"><span>ประเภทโรค</span>
-                {modal === 'add' ? (
+            <GenderChoices label="เพศ" name="dataset-gender" value={form.gender} onChange={value => setF('gender', value)} />
+            {modal === 'add' && (
+              <div className="grid-2">
+                <div className="field"><span>ประเภทโรค</span>
                   <select value={form.stroke_type} onChange={e => setF('stroke_type', e.target.value)}>
                     <option value="No_Stroke">No Stroke</option>
                     <option value="Ischemic">Ischemic</option>
                     <option value="Hemorrhagic">Hemorrhagic</option>
                   </select>
-                ) : (
-                  <input type="text" value={form.stroke_type} readOnly aria-label="ประเภทโรค" />
-                )}
+                </div>
+                <div className="field"><span>Systolic BP (mmHg)</span><input type="number" className="hide-number-spinner" min="50" max="300" step="any" value={form.systolic_bp} onChange={e => setF('systolic_bp', e.target.value)} /></div>
+                <div className="field"><span>Diastolic BP (mmHg)</span><input type="number" className="hide-number-spinner" min="30" max="200" step="any" value={form.diastolic_bp} onChange={e => setF('diastolic_bp', e.target.value)} /></div>
+                <div className="field"><span>Blood Sugar (mg/dL)</span><input type="number" className="hide-number-spinner" min="20" max="1000" step="any" value={form.blood_sugar} onChange={e => setF('blood_sugar', e.target.value)} /></div>
+                <div className="field"><span>Cholesterol (mg/dL)</span><input type="number" className="hide-number-spinner" min="50" max="1000" step="any" value={form.cholesterol} onChange={e => setF('cholesterol', e.target.value)} /></div>
+                <div className="field"><span>BMI</span><input type="number" className="hide-number-spinner" step="any" value={form.bmi} onChange={e => setF('bmi', e.target.value)} /></div>
               </div>
-              <div className="field"><span>Systolic BP (mmHg)</span><input type="number" className={modal === 'add' ? undefined : 'hide-number-spinner'} min="50" max="300" step="any" value={form.systolic_bp} onChange={e => setF('systolic_bp', e.target.value)} /></div>
-              <div className="field"><span>Diastolic BP (mmHg)</span><input type="number" className={modal === 'add' ? undefined : 'hide-number-spinner'} min="30" max="200" step="any" value={form.diastolic_bp} onChange={e => setF('diastolic_bp', e.target.value)} /></div>
-              <div className="field"><span>Blood Sugar (mg/dL)</span><input type="number" className={modal === 'add' ? undefined : 'hide-number-spinner'} min="20" max="1000" step="any" value={form.blood_sugar} onChange={e => setF('blood_sugar', e.target.value)} /></div>
-              <div className="field"><span>Cholesterol (mg/dL)</span><input type="number" className={modal === 'add' ? undefined : 'hide-number-spinner'} min="50" max="1000" step="any" value={form.cholesterol} onChange={e => setF('cholesterol', e.target.value)} /></div>
-              <div className="field"><span>BMI</span><input type="number" className={modal === 'add' ? undefined : 'hide-number-spinner'} value={form.bmi} onChange={e => setF('bmi', e.target.value)} /></div>
-            </div>
+            )}
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', margin: '10px 0' }}>
               {[['has_diabetes', 'Diabetes'], ['has_hypertension', 'Hypertension'], ['has_dyslipidemia', 'Dyslipidemia']].map(([k, l]) => (
                 <label key={k} className="check-row" style={{ flex: '1 1 140px' }}>

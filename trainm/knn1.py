@@ -100,9 +100,9 @@ print(f"จำนวนข้อมูล Test : {X_test.shape[0]} แถว")
 # -----------------------------------------------------------------------
 
 param_grid = {
-    "n_neighbors": [5, 7, 9],
-    "weights": ["uniform", "distance"],
-    "p": [1, 2]
+    "n_neighbors": [10, 15, 20],
+    "weights": ["distance"],
+    "p": [1]
 }
 
 all_combinations = list(ParameterGrid(param_grid))

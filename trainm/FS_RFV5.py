@@ -109,12 +109,12 @@ print(f"จำนวนข้อมูล Test : {X_test.shape[0]} แถว")
 # 4) Grid Search + Cross Validation (k=10)
 # -----------------------------------------------------------------------
 param_grid = {
-    "n_estimators": [100, 200, 300],
-    "criterion": ["gini", "entropy"],
-    "max_depth": [15, 20, 25],
-    "min_samples_split": [2, 4],
-    "min_samples_leaf": [2, 4],
-    "class_weight": [None, "balanced"],
+    "n_estimators": [300, 400, 500],
+    "criterion": ["entropy"],
+    "max_depth": [20, 25, 30],
+    "min_samples_split": [10, 12],
+    "min_samples_leaf": [5, 6],
+    "class_weight": ["balanced"],
 }
 
 all_combinations = list(ParameterGrid(param_grid))

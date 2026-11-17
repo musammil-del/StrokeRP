@@ -5,6 +5,7 @@ import joblib
 
 from sklearn.model_selection import train_test_split, ParameterGrid, cross_validate
 from sklearn.ensemble import RandomForestClassifier
+import matplotlib.pyplot as plt
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -13,6 +14,8 @@ from sklearn.metrics import (
     roc_auc_score,
     classification_report,
     confusion_matrix,
+    roc_curve,
+    auc,
 )
 
 from imblearn.pipeline import Pipeline as ImbPipeline
@@ -24,7 +27,7 @@ from imblearn.over_sampling import SMOTE
 # -----------------------------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(BASE_DIR, "1989.csv")
-MODEL_PATH = os.path.join(BASE_DIR, "sadsad.pkl")
+MODEL_PATH = os.path.join(BASE_DIR, "Modelrandomforest22.pkl")
 TARGET_COL = "Stroke_Type"
 
 # คอลัมน์ที่ไม่ใช่ feature ทางการแพทย์
@@ -109,12 +112,12 @@ print(f"จำนวนข้อมูล Test : {X_test.shape[0]} แถว")
 # 4) Grid Search + Cross Validation (k=10)
 # -----------------------------------------------------------------------
 param_grid = {
-    "n_estimators": [200, 300, 400],
-    "criterion": ["gini", "entropy"],
-    "max_depth": [20, 25, 30],
+    "n_estimators": [100, 200, 300],
+    "criterion": ["entropy"],
+    "max_depth": [None, 5, 10],
     "min_samples_split": [2, 4],
-    "min_samples_leaf": [4, 6],
-    "class_weight": [None, "balanced"],
+    "min_samples_leaf": [1, 2],
+    "class_weight": ["balanced"],
 }
 
 all_combinations = list(ParameterGrid(param_grid))
@@ -417,23 +420,14 @@ print(
 )
 
 
-# -----------------------------------------------------------------------
-# Confusion Matrix
-# -----------------------------------------------------------------------
-print("=== Confusion Matrix ===")
 
-cm = confusion_matrix(
-    y_test,
-    y_pred,
-    labels=[0, 1, 2]
-)
 
-print(cm)
 
 print("\nClass order:")
 print("Class 0 = No Stroke")
 print("Class 1 = Ischemic")
 print("Class 2 = Hemorrhagic")
+
 
 
 # -----------------------------------------------------------------------
@@ -450,6 +444,209 @@ importances = importances.sort_values(
 
 print("\n=== Feature Importance ===")
 print(importances)
+
+
+
+# -----------------------------------------------------------------------
+# 5.2) Confusion Matrix
+# -----------------------------------------------------------------------
+
+class_labels = [0, 1, 2]
+class_names = [
+    "No Stroke",
+    "Ischemic",
+    "Hemorrhagic"
+]
+
+cm = confusion_matrix(
+    y_test,
+    y_pred,
+    labels=class_labels
+)
+
+print("\\n=== Confusion Matrix ===")
+print(cm)
+
+plt.figure(figsize=(10, 8))
+
+plt.imshow(
+    cm,
+    interpolation="nearest",
+    cmap="Blues"
+)
+
+plt.title("Confusion Matrix", fontsize=20)
+plt.colorbar()
+
+tick_marks = np.arange(len(class_names))
+
+plt.xticks(
+    tick_marks,
+    class_names,
+    fontsize=13
+)
+
+plt.yticks(
+    tick_marks,
+    class_names,
+    fontsize=13
+)
+
+# แสดงตัวเลขในแต่ละช่อง
+threshold = cm.max() / 2
+
+for i in range(cm.shape[0]):
+    for j in range(cm.shape[1]):
+        plt.text(
+            j,
+            i,
+            format(cm[i, j], "d"),
+            horizontalalignment="center",
+            verticalalignment="center",
+            color="white" if cm[i, j] > threshold else "black",
+            fontsize=16
+        )
+
+plt.ylabel("Actual", fontsize=15)
+plt.xlabel("Predicted", fontsize=15)
+plt.tight_layout()
+
+plt.savefig(
+    os.path.join(BASE_DIR, "RF_Confusion_Matrix.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
+
+plt.show()
+plt.close()
+
+
+# -----------------------------------------------------------------------
+# 5.3) Feature Importance Graph
+# -----------------------------------------------------------------------
+
+importances = pd.Series(
+    best_model.named_steps["model"].feature_importances_,
+    index=X.columns
+)
+
+importances = importances.sort_values(
+    ascending=True
+)
+
+print("\\n=== Feature Importance ===")
+print(importances.sort_values(ascending=False))
+
+plt.figure(figsize=(14, max(8, len(importances) * 0.42)))
+
+plt.barh(
+    importances.index,
+    importances.values
+)
+
+plt.xlabel("Importance", fontsize=13)
+plt.ylabel("Features", fontsize=13)
+plt.title("Random Forest - Feature Importance", fontsize=18)
+
+plt.tight_layout()
+
+plt.savefig(
+    os.path.join(BASE_DIR, "RF_Feature_Importance.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
+
+plt.show()
+plt.close()
+
+
+# -----------------------------------------------------------------------
+# 5.4) ROC Curve รวมทั้ง 3 Classes ในกราฟเดียว
+# -----------------------------------------------------------------------
+
+roc_class_names = {
+    0: "No Stroke",
+    1: "Ischemic",
+    2: "Hemorrhagic"
+}
+
+plt.figure(figsize=(10, 8))
+
+for class_id in class_labels:
+
+    # กำหนด Class ปัจจุบันเป็น Positive
+    y_test_binary = (
+        y_test == class_id
+    ).astype(int)
+
+    # ดึง Probability ของ Class ปัจจุบัน
+    class_position = list(
+        best_model.classes_
+    ).index(class_id)
+
+    y_score = y_proba[:, class_position]
+
+    # คำนวณ ROC
+    fpr, tpr, thresholds = roc_curve(
+        y_test_binary,
+        y_score
+    )
+
+    roc_auc = auc(
+        fpr,
+        tpr
+    )
+
+    # วาด ROC ของแต่ละ Class ลงในกราฟเดียว
+    plt.plot(
+        fpr,
+        tpr,
+        linewidth=2,
+        label=f"{roc_class_names[class_id]} (AUC = {roc_auc:.4f})"
+    )
+
+# เส้นอ้างอิง Random Classifier
+plt.plot(
+    [0, 1],
+    [0, 1],
+    linestyle="--",
+    linewidth=1.5,
+    label="Random Classifier"
+)
+
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+
+plt.xlabel("False Positive Rate", fontsize=13)
+plt.ylabel("True Positive Rate", fontsize=13)
+
+plt.title(
+    "Random Forest - ROC Curve (All 3 Classes)",
+    fontsize=18
+)
+
+plt.legend(loc="lower right")
+plt.grid(alpha=0.3)
+plt.tight_layout()
+
+plt.savefig(
+    os.path.join(BASE_DIR, "RF_ROC_All_Classes.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
+
+plt.show()
+plt.close()
+
+
+# -----------------------------------------------------------------------
+# สรุปไฟล์กราฟที่สร้าง
+# -----------------------------------------------------------------------
+
+print("\\n=== Random Forest Graphs ===")
+print("1. RF_Confusion_Matrix.png")
+print("2. RF_Feature_Importance.png")
+print("3. RF_ROC_All_Classes.png")
 
 
 # -----------------------------------------------------------------------

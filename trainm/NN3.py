@@ -103,10 +103,10 @@ print(f"จำนวนข้อมูล Test : {X_test.shape[0]} แถว")
 # -----------------------------------------------------------------------
 
 param_grid = {
-    "hidden_layer_sizes": [ (150,), (200,), (150, 150) ],
-    "activation": ["relu", "tanh"],
-    "alpha": [0.0001, 0.001],
-    "learning_rate_init": [0.001, 0.01]
+    "hidden_layer_sizes": [ (150, 200), (200, 250), (250, 300) ],
+    "activation": ["tanh"],
+    "alpha": [0.01, 0.1],
+    "learning_rate_init": [0.01, 0.1]
 }
 
 all_combinations = list(ParameterGrid(param_grid))

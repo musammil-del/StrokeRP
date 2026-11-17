@@ -122,14 +122,14 @@ print(
 )
 
 # -----------------------------------------------------------------------
-# 4) Grid Search + Cross Validation (k=5)
+# 4) Grid Search + Cross Validation (k=10)
 # -----------------------------------------------------------------------
 param_grid = {
-    "criterion": ["gini", "entropy"],
-    "max_depth": [10, 15, 20],
-    "min_samples_split": [2, 4],
+    "criterion": ["gini"],
+    "max_depth": [15, 20, 25],
+    "min_samples_split": [8, 10],
     "min_samples_leaf": [4, 6],
-    "class_weight": [None, "balanced"],
+    "class_weight": [None],
 }
 
 all_combinations = list(
@@ -142,7 +142,7 @@ print(
 )
 
 print(
-    "กำลังทำ Grid Search (cv=5) "
+    "กำลังทำ Grid Search (cv=10) "
     "พร้อม SMOTE ... อาจใช้เวลาสักครู่\n"
 )
 
@@ -174,7 +174,7 @@ for i, params in enumerate(
         pipeline,
         X_train,
         y_train,
-        cv=5,
+        cv=10,
         scoring=[
             "f1_macro",
             "precision_macro",
